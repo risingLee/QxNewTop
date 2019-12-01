@@ -83,9 +83,7 @@ Window {
                 index = i;
             }
         }
-
         getMaxArray(dataModel, index, status)
-
     }
 
     function getMinArray( dataModel )
