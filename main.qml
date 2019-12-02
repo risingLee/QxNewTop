@@ -6,7 +6,7 @@ Window {
     width: 640
     height: 480
     title: qsTr("Hello World")
-    property var gcodeArray: ["sz000001"]//,"sz000002","sz000003"]
+    property var gcodeArray: g_lstData//["sz000001","sz000002","sz000003"]//
     property var gCodeMap: null
     ListModel
     {
@@ -15,24 +15,47 @@ Window {
     Component.onCompleted:
     {
         gCodeMap = {}
+        getSignalMonthData(0)
     }
 
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            getSignalMonthData(0)
+
             getAllData()
         }
     }
-
+    property var seri: 0.1
     function getAllData()
     {
+        seri = 0.55;
         for(var key in gCodeMap){
 
             var dataModel = gCodeMap[key]
-            getMaxArray(dataModel, 0, true)
 
+            if(isUpDay(dataModel))
+            {
+                console.log(key)
+            }
         }
+    }
+
+    function isUpDay(dataModel)
+    {
+        var updayCount = 0;
+        for( var i = 0; i < dataModel.length-1 ; ++i )
+        {
+            var item = dataModel[i]
+            if(item.shou-item.kai >0)
+            {
+                updayCount++
+            }
+        }
+//        console.log(updayCount/dataModel.length, updayCount, dataModel.length)
+        if( updayCount/dataModel.length >= seri && dataModel.length > 36)
+            return true
+        else
+            return false
     }
 
     function getMaxArray( dataModel , index , status)
@@ -52,6 +75,7 @@ Window {
                 var item = dataModel.get(i)
                 if(tempJun < item.jun)
                 {
+                    index = i;
                     tempJun = item.jun
                 }
                 if( tempJun > item.jun)
@@ -61,7 +85,7 @@ Window {
                     status = false; // 切换状态
                     break;
                 }
-                index = i;
+
             }
         }
         else{
@@ -72,6 +96,7 @@ Window {
                 if(tempJun > item.jun)
                 {
                     tempJun = item.jun
+                    index = i
                 }
                 if( tempJun < item.jun)
                 {
@@ -80,7 +105,7 @@ Window {
                     status = true; // 切换状态
                     break;
                 }
-                index = i;
+//                index = i;
             }
         }
         getMaxArray(dataModel, index, status)
@@ -93,9 +118,12 @@ Window {
 
     // 递归获取月线
     function getSignalMonthData(i){
+//        console.log("get Data:",gcodeArray[i]);
         XmlHttpRequest.ajax("GET","http://data.gtimg.cn/flashdata/hushen/monthly/"+gcodeArray[i]+".js?maxage=43201",function(xhr){
+
             if(xhr.status == 200)
             {
+//                console.log("get SUCCESS")
                 var data = xhr.responseText;
                 datafactory(data, gcodeArray[i]);
                 if(i < gcodeArray.length)
@@ -104,6 +132,19 @@ Window {
                 }
                 else
                 {
+                    console.log("finish")
+                    return
+                }
+            }
+            else{
+                console.log("get ERROR")
+                if(i < gcodeArray.length)
+                {
+                    getSignalMonthData(++i);
+                }
+                else
+                {
+                    console.log("finish")
                     return
                 }
             }
@@ -118,19 +159,19 @@ Window {
             if(data != null)
             {
                 var dataArray = data.split('\\n\\');
-                dataModel.clear();
+                var dataModel = new Array()
                 for(var i =1; i <dataArray.length -1; ++i)
                 {
                     var lineData = dataArray[i].trim()
                     var dataInfo = lineData.split(" ");
                     if(dataInfo.length == 6)
                     {
-                        dataModel.append({
+                        dataModel.push({
                                             date:  dataInfo[0],
-                                            kai:   dataInfo[1],
-                                            cur:   dataInfo[2],
-                                            max:   dataInfo[3],
-                                            min:   dataInfo[4],
+                                            kai:   Number(dataInfo[1]),
+                                            shou:  Number(dataInfo[2]),
+                                            max:   Number(dataInfo[3]),
+                                            min:   Number(dataInfo[4]),
                                             liang: dataInfo[5],
                                             jun:   (Number(dataInfo[3]) + Number(dataInfo[4])) / 2
                                          })
