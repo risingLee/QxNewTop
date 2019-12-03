@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
         {
             if(QString(lstInfo[0]).indexOf("ST") == -1)
             lstData.append( QString("sh") + QString(lstInfo[1]) );
-            qDebug()<<"<<SH>>"<<QString("sh") + QString(lstInfo[1]);
+//            qDebug()<<"<<SH>>"<<QString("sh") + QString(lstInfo[1]);
         }
     }
     file.close();
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
         {
             if(QString(lstInfo[0]).indexOf("ST") == -1)
             lstData << QString("sz") + lstInfo[1];
-            qDebug()<<"<<SZ>>"<<QString("sz") + QString(lstInfo[1]);
+//            qDebug()<<"<<SZ>>"<<QString("sz") + QString(lstInfo[1]);
         }
     }
     file2.close();
