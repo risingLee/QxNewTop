@@ -12,6 +12,7 @@ Window {
     property var cxcode: "sz300357"
     property var yearCount: 5
     property var monthCount: yearCount*12
+    property var smonthCount: 71
     property var seri: 0.5
     property var gCodeMap: null
     ListModel
@@ -50,7 +51,7 @@ Window {
         anchors.left:btnSet.right
         onClicked: {
             console.log("start get from location")
-//            console.log(Storage.getSetting("sz600276"))
+            //            console.log(Storage.getSetting("sz600276"))
             for(var i = 0; i<gcodeArray.length-1; ++i)
             {
                 var gcode = gcodeArray[i]
@@ -75,7 +76,7 @@ Window {
         text:"deleteDb"
         anchors.top: btnSet.bottom
         onClicked: {
-           Storage.deleteDataBase()
+            Storage.deleteDataBase()
         }
     }
 
@@ -169,6 +170,29 @@ Window {
             }
         }
     }
+    Rectangle
+    {
+        id: txmonth
+        width: 100
+        height: 30
+        anchors.left:txcode.right
+        anchors.top:txcode.top
+
+        border.color: "black"
+
+        border.width: 1
+        TextEdit
+        {
+            text: "71"
+            anchors.fill: parent
+            anchors.margins: 3
+            font.pointSize: 13
+            onTextChanged:
+            {
+                smonthCount = Number(text)
+            }
+        }
+    }
 
     function getSdata()
     {
@@ -182,8 +206,18 @@ Window {
         var jun = 0
         var min = 0
         var curMonth = 0
-        console.log(dataModel, dataModel.length)
-        for( var i = 0; i < dataModel.length-1 ; ++i )
+
+        var index = 0
+        if (dataModel.length > smonthCount)
+        {
+            index = dataModel.length - smonthCount
+        }
+        if (smonthCount == 0)
+        {
+            index = 0
+        }
+
+        for( var i = index; i < dataModel.length-1 ; ++i )
         {
             var item = dataModel[i]
             if(item.shou >max && item.shou > item.kai)
