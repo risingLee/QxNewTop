@@ -9,6 +9,7 @@ Window {
     height: 480
     title: qsTr("Hello World")
     property var gcodeArray: g_lstData//["sz000001","sz000002","sz000003"]//
+    property var cxcode: "sz300357"
     property var yearCount: 5
     property var monthCount: yearCount*12
     property var seri: 0.5
@@ -35,7 +36,7 @@ Window {
         text:"requestData"
 
         onClicked:{
-            console.log("start")
+            console.log("start",gcodeArray.length)
             Storage.initialize();
             getSignalMonthData(0)
             console.log("stop")
@@ -70,7 +71,7 @@ Window {
     }
     Button
     {
-        id: benDel
+        id: btnDel
         text:"deleteDb"
         anchors.top: btnSet.bottom
         onClicked: {
@@ -89,14 +90,25 @@ Window {
             console.log("fx finish")
         }
     }
-
+    Button
+    {
+        id: btnsFenx
+        text:"fxgp"
+        anchors.left:btnDel.right
+        anchors.top: btnDel.top
+        onClicked: {
+            console.log("start sfx",cxcode)
+            getSdata()
+            console.log("sfx finish")
+        }
+    }
     Rectangle
     {
         id: txSeri
         width: 100
         height: 30
         anchors.left:btnFenx.right
-        anchors.margins: 20
+
         border.color: "black"
 
         border.width: 1
@@ -133,6 +145,61 @@ Window {
                 yearCount = Number(text)
             }
         }
+    }
+    Rectangle
+    {
+        id: txcode
+        width: 100
+        height: 30
+        anchors.left:txSeri.left
+        anchors.top:txSeri.bottom
+
+        border.color: "black"
+
+        border.width: 1
+        TextEdit
+        {
+            text: "sz300357"
+            anchors.fill: parent
+            anchors.margins: 3
+            font.pointSize: 13
+            onTextChanged:
+            {
+                cxcode = text
+            }
+        }
+    }
+
+    function getSdata()
+    {
+        var dataModel = gCodeMap[cxcode]
+        getZhishu(dataModel);
+    }
+
+    function getZhishu(dataModel)
+    {
+        var max = 0
+        var jun = 0
+        var min = 0
+        var curMonth = 0
+        console.log(dataModel, dataModel.length)
+        for( var i = 0; i < dataModel.length-1 ; ++i )
+        {
+            var item = dataModel[i]
+            if(item.shou >max && item.shou > item.kai)
+            {
+                curMonth = i
+                max = item.shou
+                jun = item.jun
+                min = item.min
+            }
+        }
+        var dimax = Math.pow(max,(1/i) )
+        console.log( "底max:",dimax,"下1", Math.pow(dimax, dataModel.length+1), "下2",Math.pow(dimax, dataModel.length+2), "下3",Math.pow(dimax, dataModel.length+3)  )
+        var dijun = Math.pow(jun,(1/i) )
+        console.log( "底jun:",dijun,"下1", Math.pow(dijun, dataModel.length+1), "下2",Math.pow(dijun, dataModel.length+2), "下3",Math.pow(dijun, dataModel.length+3)  )
+        var dimin = Math.pow(min,(1/i) )
+        console.log( "底min:",dimin,"下1", Math.pow(dimin, dataModel.length+1), "下2",Math.pow(dimin, dataModel.length+2), "下3",Math.pow(dimin, dataModel.length+3)  )
     }
 
     function getAllData()
@@ -293,7 +360,7 @@ Window {
                                            max:   Number(dataInfo[3]),
                                            min:   Number(dataInfo[4]),
                                            liang: dataInfo[5],
-                                           jun:   (Number(dataInfo[3]) + Number(dataInfo[4])) / 2
+                                           jun:   (Number(dataInfo[2]) + Number(dataInfo[1])) / 2
                                        })
                     }
                 }
