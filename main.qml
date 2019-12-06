@@ -1,197 +1,300 @@
 import QtQuick 2.6
-import QtQuick.Controls 2.2
+import QtQuick.Controls 1.4
+//import QtWebEngine 1.5
+//import QtWebChannel 1.0
 import QtQuick.Window 2.2
 import "xmlhttprequest.js" as XmlHttpRequest
 import "Storage.js" as Storage
+import REQUEST 1.0
 Window {
     visible: true
     width: 640
     height: 480
     title: qsTr("Hello World")
-    property var gcodeArray: g_lstData//["sz000001","sz000002","sz000003"]//
-    property var cxcode: "sz300357"
+    property var gcodeArray: g_lstData//["SZ300015","SH601788","SH601800"]//
+//    property var gcodeArray:["SZ300357"]
+    property var cxcode: "SZ300015"
     property var yearCount: 5
     property var monthCount: yearCount*12
     property var smonthCount: 71
     property var seri: 0.5
+    property var serigao: 0.5
     property var gCodeMap: null
-    ListModel
-    {
-        id: dataModel
-    }
-
-    Component.onCompleted:
-    {
+    signal changeUrl(var url)
+    property var _index: 0
+    Component.onCompleted: {
         gCodeMap = {}
-    }
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
+        getLocationData()
+        changeUrl.connect(r_netrequest.slot_changeUrl)
 
-            getAllData()
-        }
-    }
-    Button
-    {
-        id: btnSet
-        text:"requestData"
-
-        onClicked:{
-            console.log("start",gcodeArray.length)
-            Storage.initialize();
-            getSignalMonthData(0)
-            console.log("stop")
-        }
 
     }
-    Button
-    {
-        id: btnGet
-        text:"getLocationData"
-        anchors.left:btnSet.right
-        onClicked: {
-            console.log("start get from location")
-            //            console.log(Storage.getSetting("sz600276"))
-            for(var i = 0; i<gcodeArray.length-1; ++i)
+
+    Request{
+        id: r_netrequest
+        onResponseSuccessful:{
+            console.log("成功 ", gcodeArray[_index]," id:", _index)
+            console.log(text.length)
+            if(text.length > 0)
             {
-                var gcode = gcodeArray[i]
-                var strModel = Storage.getSetting(gcode)
-                if(strModel != "Unknown")
+                var obj = JSON.parse(text);
+                datafactory(obj.data.item, gcodeArray[_index])
+                ++_index;
+                pb.value = _index;
+                if(_index >= gcodeArray.length)
+                    return
+                console.log("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
+                if(gcodeArray[_index])
+                    changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
+
+            }
+
+        }
+        onResponseFaild:{
+            console.log("超时失败等")
+        }
+
+    }
+
+
+
+    Column
+    {
+        x: 0
+        y: 5
+        width: 621
+        height: 454
+
+        ProgressBar
+        {
+            id: pb
+            width: 600
+            height: 30
+
+        }
+        TextInput
+        {
+            id: cookieTx
+            width: 600
+            height: 50
+        }
+
+
+        Row
+        {
+            Button
+            {
+                width:80
+                height:30
+                text: "获取全部数据"
+                onClicked:
                 {
-                    var dataModel = JSON.parse(strModel)
-                    if(dataModel!=null)
-                        gCodeMap[gcode] = dataModel
+                    pb.minimumValue  = 0
+                    pb.maximumValue = gcodeArray.length-1
+                    Storage.initialize();
+                    console.log("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
+                    changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
                 }
-                else
+            }
+
+            Button
+            {
+                id: btnDel
+                width: 80
+                height: 30
+                text:"清除数据"
+                onClicked: {
+                    Storage.deleteDataBase()
+                }
+            }
+            Rectangle {
+                id: txcode1
+                y: 0
+                width: 100
+                height: 30
+                border.width: 1
+                TextEdit {
+                    id: textGet
+                    text: "SH600001"
+                    anchors.fill: parent
+                    font.pointSize: 13
+                    anchors.margins: 3
+                }
+                border.color: "#000000"
+            }
+
+            Button
+            {
+                id: btnSet
+                height: 30
+                text:"获取"
+                onClicked:{
+                    changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+textGet.text+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
+                }
+            }
+
+        }
+        
+        
+        
+        Row
+        {
+            Rectangle
+            {
+                id: txcode
+                width: 100
+                height: 30
+                border.color: "black"
+                border.width: 1
+                TextEdit
                 {
-                    console.log("Unknown ", gcode)
+                    text: "sz300357"
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    font.pointSize: 13
+                    onTextChanged:
+                    {
+                        cxcode = text
+                    }
                 }
             }
-            console.log("get from location finish")
-        }
-    }
-    Button
-    {
-        id: btnDel
-        text:"deleteDb"
-        anchors.top: btnSet.bottom
-        onClicked: {
-            Storage.deleteDataBase()
-        }
-    }
-
-    Button
-    {
-        id: btnFenx
-        text:"fenxData"
-        anchors.left:btnGet.right
-        onClicked: {
-            console.log("start fx",seri,monthCount)
-            getAllData()
-            console.log("fx finish")
-        }
-    }
-    Button
-    {
-        id: btnsFenx
-        text:"fxgp"
-        anchors.left:btnDel.right
-        anchors.top: btnDel.top
-        onClicked: {
-            console.log("start sfx",cxcode)
-            getSdata()
-            console.log("sfx finish")
-        }
-    }
-    Rectangle
-    {
-        id: txSeri
-        width: 100
-        height: 30
-        anchors.left:btnFenx.right
-
-        border.color: "black"
-
-        border.width: 1
-        TextEdit
-        {
-            text:"0.5"
-            anchors.fill: parent
-            anchors.margins: 3
-            font.pointSize: 13
-            onTextChanged:
+            Rectangle
             {
-                seri = Number(text)
+                id: txmonth
+                width: 100
+                height: 30
+                border.color: "black"
+                border.width: 1
+                TextEdit
+                {
+                    text: "0"
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    font.pointSize: 13
+                    onTextChanged:
+                    {
+                        smonthCount = Number(text)
+                    }
+                }
+            }
+            Button
+            {
+                id: btnsFenx
+                height: 30
+                text:"买卖点计算"
+                onClicked: {
+                    console.log("start sfx",cxcode)
+                    getSdata()
+                    console.log("sfx finish")
+                }
             }
         }
-    }
-    Rectangle
-    {
-        id: txYear
-        width: 100
-        height: 30
-        anchors.left:txSeri.right
-        anchors.margins: 20
-        border.color: "black"
+        
+        Row{
 
-        border.width: 1
-        TextEdit
-        {
-            text:"5"
-            anchors.fill: parent
-            anchors.margins: 3
-            font.pointSize: 13
-            onTextChanged:
+            Rectangle
             {
-                yearCount = Number(text)
+                id: txSeri
+                width: 100
+                height: 30
+                border.color: "black"
+                border.width: 1
+                TextEdit
+                {
+                    text:"0.5"
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    font.pointSize: 13
+                    onTextChanged:
+                    {
+                        seri = Number(text)
+                    }
+                }
+            }
+            Rectangle
+            {
+                id: txYear
+                width: 100
+                height: 30
+                border.color: "black"
+                border.width: 1
+                TextEdit
+                {
+                    text:"5"
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    font.pointSize: 13
+                    onTextChanged:
+                    {
+                        yearCount = Number(text)
+                    }
+                }
+            }
+            Button
+            {
+                id: btnFenx
+                height: 30
+                text:"概率选股"
+                onClicked: {
+                    console.log("start fx",seri,monthCount)
+                    getAllData()
+                    //                    getAllData2()
+                    console.log("fx finish")
+                }
             }
         }
-    }
-    Rectangle
-    {
-        id: txcode
-        width: 100
-        height: 30
-        anchors.left:txSeri.left
-        anchors.top:txSeri.bottom
-
-        border.color: "black"
-
-        border.width: 1
-        TextEdit
-        {
-            text: "sz300357"
-            anchors.fill: parent
-            anchors.margins: 3
-            font.pointSize: 13
-            onTextChanged:
-            {
-                cxcode = text
+        
+        Row {
+            RadioButton {
+                id: radioButton
+                height: 30
+                text: qsTr("反指标")
             }
+
+            Rectangle {
+                id: txSeri1
+                width: 100
+                height: 30
+                border.color: "#000000"
+                TextEdit {
+                    text: "0.8"
+                    anchors.margins: 3
+                    font.pointSize: 13
+                    anchors.fill: parent
+                    onTextChanged:
+                    {
+                        serigao = Number(text)
+                    }
+                }
+                border.width: 1
+
+            }
+
+            Button {
+                id: btnFenx1
+                height: 30
+                text: "高点选股"
+                onClicked: {
+                    console.log("start fx",serigao)
+                    var status = 1
+                    if(radioButton.checked)
+                    {
+                        status = 0
+                    }
+
+                    Storage.calNewTop(status)
+                    console.log("fx finish")
+                }
+            }
+
         }
     }
-    Rectangle
+    function getLocationData()
     {
-        id: txmonth
-        width: 100
-        height: 30
-        anchors.left:txcode.right
-        anchors.top:txcode.top
 
-        border.color: "black"
-
-        border.width: 1
-        TextEdit
-        {
-            text: "71"
-            anchors.fill: parent
-            anchors.margins: 3
-            font.pointSize: 13
-            onTextChanged:
-            {
-                smonthCount = Number(text)
-            }
-        }
+        console.log("start get from location")
+        Storage.getAllSetting()
+        console.log("get from location finish")
     }
 
     function getSdata()
@@ -234,6 +337,34 @@ Window {
         console.log( "底jun:",dijun,"下1", Math.pow(dijun, dataModel.length+1), "下2",Math.pow(dijun, dataModel.length+2), "下3",Math.pow(dijun, dataModel.length+3)  )
         var dimin = Math.pow(min,(1/i) )
         console.log( "底min:",dimin,"下1", Math.pow(dimin, dataModel.length+1), "下2",Math.pow(dimin, dataModel.length+2), "下3",Math.pow(dimin, dataModel.length+3)  )
+    }
+
+    function getAllData2()
+    {
+        pb.from  = 0
+
+        pb.to = gcodeArray.length-1
+        for(var i = 0; i<gcodeArray.length-1; ++i)
+        {
+            var gcode = gcodeArray[i]
+            var strModel = Storage.getSetting(gcode)
+            if(strModel != "Unknown")
+            {
+                var dataModel = JSON.parse(strModel)
+                var result = isUpDay(dataModel);
+                if(result != -1)
+                {
+                    console.log(gcode, result)
+                }
+            }
+            else
+            {
+                console.log("Unknown ", gcode)
+            }
+            pb.value = i
+
+        }
+
     }
 
     function getAllData()
@@ -358,6 +489,7 @@ Window {
                 }
             }
             else{
+                console.log("http://data.gtimg.cn/flashdata/hushen/monthly/"+gcodeArray[i]+".js?maxage=43201");
                 console.log("get ERROR")
                 if(i < gcodeArray.length)
                 {
@@ -374,27 +506,26 @@ Window {
 
 
     // 数据工厂
-    function datafactory(data, gcode)
+    function datafactory(dataArray, gcode)
     {
         try{
-            if(data != null)
+            if(dataArray != null)
             {
-                var dataArray = data.split('\\n\\');
+
                 var dataModel = new Array()
-                for(var i =1; i <dataArray.length -1; ++i)
+                for(var i=0; i <dataArray.length; ++i)
                 {
-                    var lineData = dataArray[i].trim()
-                    var dataInfo = lineData.split(" ");
-                    if(dataInfo.length == 6)
+                    var dataInfo = dataArray[i];
+                    if(dataInfo.length > 6)
                     {
                         dataModel.push({
                                            date:  dataInfo[0],
-                                           kai:   Number(dataInfo[1]),
-                                           shou:  Number(dataInfo[2]),
+                                           kai:   Number(dataInfo[2]),
+                                           shou:  Number(dataInfo[5]),
                                            max:   Number(dataInfo[3]),
                                            min:   Number(dataInfo[4]),
-                                           liang: dataInfo[5],
-                                           jun:   (Number(dataInfo[2]) + Number(dataInfo[1])) / 2
+                                           liang: dataInfo[1],
+                                           jun:   (Number(dataInfo[2]) + Number(dataInfo[5])) / 2
                                        })
                     }
                 }
