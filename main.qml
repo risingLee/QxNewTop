@@ -1,5 +1,6 @@
 import QtQuick 2.6
 import QtQuick.Controls 2.2
+
 import QtQuick.Window 2.2
 import "xmlhttprequest.js" as XmlHttpRequest
 import "Storage.js" as Storage
@@ -15,183 +16,181 @@ Window {
     property var smonthCount: 71
     property var seri: 0.5
     property var gCodeMap: null
-    ListModel
-    {
-        id: dataModel
-    }
+
+
+
 
     Component.onCompleted:
     {
         gCodeMap = {}
-    }
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
 
-            getAllData()
-        }
+        getLocationData()
     }
-    Button
+
+    Column
     {
-        id: btnSet
-        text:"requestData"
+        ProgressBar
+        {
+            id: pb
+            width: 600
+            height: 30
 
-        onClicked:{
-            console.log("start",gcodeArray.length)
-            Storage.initialize();
-            getSignalMonthData(0)
-            console.log("stop")
         }
 
-    }
-    Button
-    {
-        id: btnGet
-        text:"getLocationData"
-        anchors.left:btnSet.right
-        onClicked: {
-            console.log("start get from location")
-            //            console.log(Storage.getSetting("sz600276"))
-            for(var i = 0; i<gcodeArray.length-1; ++i)
+        Row
+        {
+            Button
             {
-                var gcode = gcodeArray[i]
-                var strModel = Storage.getSetting(gcode)
-                if(strModel != "Unknown")
-                {
-                    var dataModel = JSON.parse(strModel)
-                    if(dataModel!=null)
-                        gCodeMap[gcode] = dataModel
-                }
-                else
-                {
-                    console.log("Unknown ", gcode)
+                id: btnSet
+                text:"requestData"
+                onClicked:{
+                    console.log("start",gcodeArray.length)
+                    Storage.initialize();
+                    getSignalMonthData(0)
+                    console.log("stop")
                 }
             }
-            console.log("get from location finish")
-        }
-    }
-    Button
-    {
-        id: btnDel
-        text:"deleteDb"
-        anchors.top: btnSet.bottom
-        onClicked: {
-            Storage.deleteDataBase()
-        }
-    }
 
-    Button
-    {
-        id: btnFenx
-        text:"fenxData"
-        anchors.left:btnGet.right
-        onClicked: {
-            console.log("start fx",seri,monthCount)
-            getAllData()
-            console.log("fx finish")
-        }
-    }
-    Button
-    {
-        id: btnsFenx
-        text:"fxgp"
-        anchors.left:btnDel.right
-        anchors.top: btnDel.top
-        onClicked: {
-            console.log("start sfx",cxcode)
-            getSdata()
-            console.log("sfx finish")
-        }
-    }
-    Rectangle
-    {
-        id: txSeri
-        width: 100
-        height: 30
-        anchors.left:btnFenx.right
-
-        border.color: "black"
-
-        border.width: 1
-        TextEdit
-        {
-            text:"0.5"
-            anchors.fill: parent
-            anchors.margins: 3
-            font.pointSize: 13
-            onTextChanged:
+            Button
             {
-                seri = Number(text)
+                id: btnDel
+                text:"deleteDb"
+                onClicked: {
+                    Storage.deleteDataBase()
+                }
+            }
+        }
+
+
+
+        Row{
+
+            Rectangle
+            {
+                id: txSeri
+                width: 100
+                height: 30
+                border.color: "black"
+                border.width: 1
+                TextEdit
+                {
+                    text:"0.5"
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    font.pointSize: 13
+                    onTextChanged:
+                    {
+                        seri = Number(text)
+                    }
+                }
+            }
+            Rectangle
+            {
+                id: txYear
+                width: 100
+                height: 30
+                border.color: "black"
+                border.width: 1
+                TextEdit
+                {
+                    text:"5"
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    font.pointSize: 13
+                    onTextChanged:
+                    {
+                        yearCount = Number(text)
+                    }
+                }
+            }
+            Button
+            {
+                id: btnFenx
+                text:"fenxData"
+                onClicked: {
+                    console.log("start fx",seri,monthCount)
+                    getAllData()
+//                    getAllData2()
+                    console.log("fx finish")
+                }
+            }
+        }
+        Row
+        {
+            Rectangle
+            {
+                id: txcode
+                width: 100
+                height: 30
+                border.color: "black"
+                border.width: 1
+                TextEdit
+                {
+                    text: "sz300357"
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    font.pointSize: 13
+                    onTextChanged:
+                    {
+                        cxcode = text
+                    }
+                }
+            }
+            Rectangle
+            {
+                id: txmonth
+                width: 100
+                height: 30
+                border.color: "black"
+                border.width: 1
+                TextEdit
+                {
+                    text: "71"
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    font.pointSize: 13
+                    onTextChanged:
+                    {
+                        smonthCount = Number(text)
+                    }
+                }
+            }
+            Button
+            {
+                id: btnsFenx
+                text:"fxgp"
+                onClicked: {
+                    console.log("start sfx",cxcode)
+                    getSdata()
+                    console.log("sfx finish")
+                }
             }
         }
     }
-    Rectangle
+    function getLocationData()
     {
-        id: txYear
-        width: 100
-        height: 30
-        anchors.left:txSeri.right
-        anchors.margins: 20
-        border.color: "black"
 
-        border.width: 1
-        TextEdit
-        {
-            text:"5"
-            anchors.fill: parent
-            anchors.margins: 3
-            font.pointSize: 13
-            onTextChanged:
-            {
-                yearCount = Number(text)
-            }
-        }
-    }
-    Rectangle
-    {
-        id: txcode
-        width: 100
-        height: 30
-        anchors.left:txSeri.left
-        anchors.top:txSeri.bottom
+        console.log("start get from location")
+//        Storage.getSettings(gcodeArray)
+       Storage.getAllSetting()
+//        for(var i = 0; i<gcodeArray.length-1; ++i)
+//        {
+//            var gcode = gcodeArray[i]
+//            var strModel = Storage.getSetting(gcode)
+//            if(strModel != "Unknown")
+//            {
+//                var dataModel = JSON.parse(strModel)
+//                if(dataModel!=null)
+//                    gCodeMap[gcode] = dataModel
+//            }
+//            else
+//            {
+//                console.log("Unknown ", gcode)
+//            }
+//            pb.value = i
+//        }
 
-        border.color: "black"
-
-        border.width: 1
-        TextEdit
-        {
-            text: "sz300357"
-            anchors.fill: parent
-            anchors.margins: 3
-            font.pointSize: 13
-            onTextChanged:
-            {
-                cxcode = text
-            }
-        }
-    }
-    Rectangle
-    {
-        id: txmonth
-        width: 100
-        height: 30
-        anchors.left:txcode.right
-        anchors.top:txcode.top
-
-        border.color: "black"
-
-        border.width: 1
-        TextEdit
-        {
-            text: "71"
-            anchors.fill: parent
-            anchors.margins: 3
-            font.pointSize: 13
-            onTextChanged:
-            {
-                smonthCount = Number(text)
-            }
-        }
+        console.log("get from location finish")
     }
 
     function getSdata()
@@ -234,6 +233,33 @@ Window {
         console.log( "底jun:",dijun,"下1", Math.pow(dijun, dataModel.length+1), "下2",Math.pow(dijun, dataModel.length+2), "下3",Math.pow(dijun, dataModel.length+3)  )
         var dimin = Math.pow(min,(1/i) )
         console.log( "底min:",dimin,"下1", Math.pow(dimin, dataModel.length+1), "下2",Math.pow(dimin, dataModel.length+2), "下3",Math.pow(dimin, dataModel.length+3)  )
+    }
+
+    function getAllData2()
+    {
+        pb.from  = 0
+        pb.to = gcodeArray.length-1
+        for(var i = 0; i<gcodeArray.length-1; ++i)
+        {
+            var gcode = gcodeArray[i]
+            var strModel = Storage.getSetting(gcode)
+            if(strModel != "Unknown")
+            {
+                var dataModel = JSON.parse(strModel)
+                var result = isUpDay(dataModel);
+                if(result != -1)
+                {
+                    console.log(gcode, result)
+                }
+            }
+            else
+            {
+                console.log("Unknown ", gcode)
+            }
+            pb.value = i
+
+        }
+
     }
 
     function getAllData()
