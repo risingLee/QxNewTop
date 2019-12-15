@@ -1,6 +1,8 @@
 import QtQuick 2.6
 import QtQuick.Controls 2.2
 
+import QtCharts 2.2
+
 import QtQuick.Window 2.2
 import "xmlhttprequest.js" as XmlHttpRequest
 import "Storage.js" as Storage
@@ -23,12 +25,40 @@ Window {
     Component.onCompleted:
     {
         gCodeMap = {}
-
+        Storage.initialize()
         getLocationData()
     }
 
+
     Column
     {
+        ChartView {
+            id: chartsview;
+            width: 400
+            height: 300
+            theme: ChartView.ChartThemeBrownSand
+            antialiasing: true
+
+            ValueAxis{
+                id: axiasX;
+                max: 500;
+                min: 0;
+            }
+
+            ValueAxis{
+                id: axiasY;
+                max: 200;
+                min: 0;
+            }
+
+
+            property var newLine : chartsview.createSeries(ChartView.SeriesTypeLine,"新增折线");
+            Component.onCompleted: {
+                newLine.axisX = axiasX
+                newLine.axisY = axiasY
+            }
+        }
+
         ProgressBar
         {
             id: pb
@@ -216,9 +246,11 @@ Window {
             index = 0
         }
 
+
         for( var i = index; i < dataModel.length-1 ; ++i )
         {
             var item = dataModel[i]
+            chartsview.newLine.append(i,item.jun);//向线条加点
             if(item.shou >max && item.shou > item.kai)
             {
                 curMonth = i
@@ -432,4 +464,5 @@ Window {
             console.log(e)
         }
     }
+
 }
