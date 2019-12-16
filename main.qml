@@ -52,10 +52,11 @@ Window {
             }
 
 
-            property var newLine : chartsview.createSeries(ChartView.SeriesTypeLine,"新增折线");
+            property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"1");
+            property var newLine2 : chartsview.createSeries(ChartView.SeriesTypeLine,"2");
+            property var newLine3 : chartsview.createSeries(ChartView.SeriesTypeLine,"3");
             Component.onCompleted: {
-                newLine.axisX = axiasX
-                newLine.axisY = axiasY
+
             }
         }
 
@@ -247,10 +248,41 @@ Window {
         }
 
 
+
+        chartsview.newLine1.axisX.min = index
+        chartsview.newLine1.axisY.min = index
+        chartsview.newLine1.axisX.max = dataModel.length
+        chartsview.newLine1.name = "shou"
+        chartsview.newLine1.color  = "#8AB846"
+        chartsview.newLine1.clear();
+
+        chartsview.newLine2.axisX.min = index
+        chartsview.newLine2.axisY.min = index
+        chartsview.newLine2.axisX.max = dataModel.length
+        chartsview.newLine2.name = "jun"
+        chartsview.newLine2.color  ="#FFD52B1E"
+        chartsview.newLine2.clear();
+
+        chartsview.newLine3.axisX.min = index
+        chartsview.newLine3.axisY.min = index
+        chartsview.newLine3.axisX.max = dataModel.length
+        chartsview.newLine3.name = "min"
+        chartsview.newLine3.color  = "#FF0039A5"
+        chartsview.newLine3.clear();
+        var max = 0
         for( var i = index; i < dataModel.length-1 ; ++i )
         {
             var item = dataModel[i]
-            chartsview.newLine.append(i,item.jun);//向线条加点
+            if (max < item.shou)
+            {
+                max = item.shou
+                chartsview.newLine1.axisY.max = max
+                chartsview.newLine2.axisY.max = max
+                chartsview.newLine3.axisY.max = max
+            }
+            chartsview.newLine1.append(i,item.shou);//向线条加点
+            chartsview.newLine2.append(i,item.jun);
+            chartsview.newLine3.append(i,item.min);
             if(item.shou >max && item.shou > item.kai)
             {
                 curMonth = i
@@ -259,6 +291,8 @@ Window {
                 min = item.min
             }
         }
+
+
         var dimax = Math.pow(max,(1/i) )
         console.log( "底max:",dimax,"下1", Math.pow(dimax, dataModel.length+1), "下2",Math.pow(dimax, dataModel.length+2), "下3",Math.pow(dimax, dataModel.length+3)  )
         var dijun = Math.pow(jun,(1/i) )
