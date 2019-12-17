@@ -4,8 +4,9 @@ import QtQuick.Controls 2.2
 import QtCharts 2.2
 
 import QtQuick.Window 2.2
-import "xmlhttprequest.js" as XmlHttpRequest
 import "Storage.js" as Storage
+import "xmlhttprequest.js" as XmlHttpRequest
+
 Window {
     visible: true
     width: 640
@@ -26,16 +27,89 @@ Window {
     {
         gCodeMap = {}
         Storage.initialize()
-        Storage.getLocationData()
+//        Storage.getLocationData()
     }
 
+    // 递归获取Month
+    function getSignalMonthData(i){
+        //        console.log("get Data:",gcodeArray[i]);
+        XmlHttpRequest.ajax("GET","http://data.gtimg.cn/flashdata/hushen/monthly/"+gcodeArray[i]+".js?maxage=43201",function(xhr){
 
+            if(xhr.status == 200)
+            {
+                //                console.log("get SUCCESS")
+                var data = xhr.responseText;
+                Storage.datafactory(data, gcodeArray[i]);
+                if(i < gcodeArray.length)
+                {
+                    getSignalMonthData(++i);
+                }
+                else
+                {
+                    console.log("finish")
+                    return
+                }
+            }
+            else{
+                console.log("get ERROR")
+                if(i < gcodeArray.length)
+                {
+                    getSignalMonthData(++i);
+                }
+                else
+                {
+                    console.log("finish")
+                    return
+                }
+            }
+        });
+    }
+    // 递归获取Month
+    function getSignalDayData(i){
+        //        console.log("get Data:",gcodeArray[i]);
+        pb.value = i
+        XmlHttpRequest.ajax("GET","http://finance.sina.com.cn/realstock/company/"+gcodeArray[i]+"/qianfuquan.js?d=2000-06-16",function(xhr){
+
+
+            if(xhr.status == 200)
+            {
+                //                console.log("get SUCCESS")
+                var data = xhr.responseText;
+
+                Storage.datafactory2(data, gcodeArray[i]);
+                if(i < gcodeArray.length)
+                {
+                    getSignalDayData(++i);
+                }
+                else
+                {
+                    console.log("finish")
+                    return
+                }
+            }
+            else{
+                console.log("get ERROR")
+                if(i < gcodeArray.length)
+                {
+                    getSignalDayData(++i);
+                }
+                else
+                {
+                    console.log("finish")
+                    return
+                }
+            }
+        });
+    }
     Column
     {
+        anchors.fill: parent
         ChartView {
             id: chartsview;
             width: 400
             height: 300
+
+            visible: true
             theme: ChartView.ChartThemeBrownSand
             antialiasing: true
 
@@ -77,7 +151,10 @@ Window {
                 onClicked:{
                     console.log("start",gcodeArray.length)
                     Storage.initialize();
-                    Storage.getSignalMonthData(0)
+//                    getSignalMonthData(0)
+                    pb.from  = 0
+                    pb.to = gcodeArray.length-1
+                    getSignalDayData(0)
                     console.log("stop")
                 }
             }
@@ -140,6 +217,7 @@ Window {
                 text:"fenxData"
                 onClicked: {
                     console.log("start fx",seri,monthCount)
+
                     Storage.getAllData()
 //                    getAllData2()
                     console.log("fx finish")
@@ -157,7 +235,7 @@ Window {
                 border.width: 1
                 TextEdit
                 {
-                    text: "sz300357"
+                    text: "sh603338"
                     anchors.fill: parent
                     anchors.margins: 3
                     font.pointSize: 13
@@ -192,7 +270,20 @@ Window {
                 text:"fxgp"
                 onClicked: {
                     console.log("start sfx",cxcode)
-                    Storage.getSdata()
+                    var strModel = Storage.getSetting(cxcode)
+                    if(strModel != "Unknown")
+                    {
+                        var dataModel = JSON.parse(strModel)
+                        if(dataModel!=null)
+                            gCodeMap[cxcode] = dataModel
+                    }
+                    else
+                    {
+                        console.log("Unknown ", cxcode)
+                    }
+//                    Storage.getSdata()
+
+                    Storage.getSDayData()
                     console.log("sfx finish")
                 }
             }

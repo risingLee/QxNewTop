@@ -82,27 +82,88 @@ function getLocationData()
 {
 
     console.log("start get from location")
-//        Storage.getSettings(gcodeArray)
-   getAllSetting()
-//        for(var i = 0; i<gcodeArray.length-1; ++i)
-//        {
-//            var gcode = gcodeArray[i]
-//            var strModel = Storage.getSetting(gcode)
-//            if(strModel != "Unknown")
-//            {
-//                var dataModel = JSON.parse(strModel)
-//                if(dataModel!=null)
-//                    gCodeMap[gcode] = dataModel
-//            }
-//            else
-//            {
-//                console.log("Unknown ", gcode)
-//            }
-//            pb.value = i
-//        }
+
+    getAllSetting()
+    //        for(var i = 0; i<gcodeArray.length-1; ++i)
+    //        {
+    //            var gcode = gcodeArray[i]
+    //            var strModel = Storage.getSetting(gcode)
+    //            if(strModel != "Unknown")
+    //            {
+    //                var dataModel = JSON.parse(strModel)
+    //                if(dataModel!=null)
+    //                    gCodeMap[gcode] = dataModel
+    //            }
+    //            else
+    //            {
+    //                console.log("Unknown ", gcode)
+    //            }
+    //            pb.value = i
+    //        }
 
     console.log("get from location finish")
 }
+
+function getSDayData()
+{
+    var dataModel = gCodeMap[cxcode]
+    getDayZhishu(dataModel);
+}
+function getDayZhishu(dataModel)
+{
+    var max = 0
+    var jun = 0
+    var min = 0
+    var curDay = 0
+
+    var index = 0
+    if (dataModel.length > smonthCount)
+    {
+        index = smonthCount
+    }
+    if (smonthCount == 0)
+    {
+        index = dataModel.length-1
+    }
+
+    chartsview.newLine2.axisX.min = dataModel.length - 1 - index
+    chartsview.newLine2.axisY.min = dataModel.length - 1 -index
+    chartsview.newLine2.axisX.max = dataModel.length
+    chartsview.newLine2.name = "jun"
+    chartsview.newLine2.color  ="#FFD52B1E"
+    chartsview.newLine2.clear();
+
+    var _max = 0
+    var i = index
+    for(  i = index; i >=0  ; --i )
+    {
+        var item = dataModel[i]
+        if (_max < item.jun)
+        {
+            _max = item.jun
+            chartsview.newLine1.axisY.max = _max
+            chartsview.newLine2.axisY.max = _max
+            chartsview.newLine3.axisY.max = _max
+        }
+
+        chartsview.newLine2.append(dataModel.length -1 -i,item.jun);
+
+        if(item.jun >max )
+        {
+            curDay = dataModel.length-i
+            max = item.jun
+            jun = item.jun
+            min = item.min
+        }
+    }
+    console.log(curDay/dataModel.length)
+
+
+    var dijun = Math.pow(jun,(1/(dataModel.length-1-i)) )
+    console.log( "底jun:",dijun,"下1", Math.pow(dijun, dataModel.length+1), "下2",Math.pow(dijun, dataModel.length+2), "下3",Math.pow(dijun, dataModel.length+3)  )
+}
+
+
 
 function getSdata()
 {
@@ -173,6 +234,7 @@ function getZhishu(dataModel)
         }
     }
 
+    console.log(curMonth/dataModel.length)
 
     var dimax = Math.pow(max,(1/i) )
     console.log( "底max:",dimax,"下1", Math.pow(dimax, dataModel.length+1), "下2",Math.pow(dimax, dataModel.length+2), "下3",Math.pow(dimax, dataModel.length+3)  )
@@ -184,8 +246,7 @@ function getZhishu(dataModel)
 
 function getAllData2()
 {
-    pb.from  = 0
-    pb.to = gcodeArray.length-1
+
     for(var i = 0; i<gcodeArray.length-1; ++i)
     {
         var gcode = gcodeArray[i]
@@ -203,8 +264,6 @@ function getAllData2()
         {
             console.log("Unknown ", gcode)
         }
-        pb.value = i
-
     }
 
 }
@@ -307,40 +366,6 @@ function getMaxArray( dataModel , index , status)
 
 
 
-// 递归获取月线
-function getSignalMonthData(i){
-    //        console.log("get Data:",gcodeArray[i]);
-    XmlHttpRequest.ajax("GET","http://data.gtimg.cn/flashdata/hushen/monthly/"+gcodeArray[i]+".js?maxage=43201",function(xhr){
-
-        if(xhr.status == 200)
-        {
-            //                console.log("get SUCCESS")
-            var data = xhr.responseText;
-            datafactory(data, gcodeArray[i]);
-            if(i < gcodeArray.length)
-            {
-                getSignalMonthData(++i);
-            }
-            else
-            {
-                console.log("finish")
-                return
-            }
-        }
-        else{
-            console.log("get ERROR")
-            if(i < gcodeArray.length)
-            {
-                getSignalMonthData(++i);
-            }
-            else
-            {
-                console.log("finish")
-                return
-            }
-        }
-    });
-}
 
 
 // 数据工厂
@@ -375,4 +400,43 @@ function datafactory(data, gcode)
     {
         console.log(e)
     }
+}
+
+// 数据工厂2
+function datafactory2(data, gcode)
+{
+    var end = data.indexOf("}}]")
+    var newdata = data.substring(data.indexOf("data:")+6, end)
+    try{
+        if(newdata != null)
+        {
+            var dataArray = newdata.split(',');
+            var dataModel = new Array()
+
+            for(var i =1; i <dataArray.length -1; ++i)
+            {
+                var lineData = dataArray[i].trim()
+                var dataInfo = lineData.split(":");
+                if(dataInfo.length == 2)
+                {
+                    var value = dataInfo[1].substring(1,dataInfo[1].length-1)
+                    dataModel.push({
+                                       date:  dataInfo[0],
+                                       kai:   -1,
+                                       shou:  -1,
+                                       max:   -1,
+                                       min:   -1,
+                                       liang: -1,
+                                       jun:  Number(value)
+                                   })
+                }
+            }
+            setSetting(gcode,JSON.stringify(dataModel))
+            //                console.log(gcode,JSON.stringify(dataModel))
+        }
+    }catch(e)
+    {
+        console.log(e)
+    }
+
 }
