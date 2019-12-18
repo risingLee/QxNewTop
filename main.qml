@@ -16,8 +16,8 @@ Window {
     property var cxcode: "sz300357"
     property var yearCount: 5
     property var monthCount: yearCount*12
-    property var smonthCount: 71
-    property var seri: 0.5
+    property var smonthCount: 0
+    property var seri: 0.618
     property var gCodeMap: null
 
 
@@ -101,9 +101,11 @@ Window {
             }
         });
     }
+    ListModel{id:gListModel}
+    Row{
     Column
     {
-        anchors.fill: parent
+
         ChartView {
             id: chartsview;
             width: 400
@@ -125,10 +127,10 @@ Window {
                 min: 0;
             }
 
-
-            property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"1");
-            property var newLine2 : chartsview.createSeries(ChartView.SeriesTypeLine,"2");
-            property var newLine3 : chartsview.createSeries(ChartView.SeriesTypeLine,"3");
+            property var newLine : chartsview.createSeries(ChartView.SeriesTypeLine,"");
+//            property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"1");
+//            property var newLine2 : chartsview.createSeries(ChartView.SeriesTypeLine,"2");
+//            property var newLine3 : chartsview.createSeries(ChartView.SeriesTypeLine,"3");
             Component.onCompleted: {
 
             }
@@ -182,7 +184,7 @@ Window {
                 border.width: 1
                 TextEdit
                 {
-                    text:"0.5"
+                    text:"0.618"
                     anchors.fill: parent
                     anchors.margins: 3
                     font.pointSize: 13
@@ -217,8 +219,8 @@ Window {
                 text:"fenxData"
                 onClicked: {
                     console.log("start fx",seri,monthCount)
-
-                    Storage.getAllData()
+                    Storage.calNewTop()
+                    //Storage.getAllData()
 //                    getAllData2()
                     console.log("fx finish")
                 }
@@ -254,7 +256,7 @@ Window {
                 border.width: 1
                 TextEdit
                 {
-                    text: "71"
+                    text: "0"
                     anchors.fill: parent
                     anchors.margins: 3
                     font.pointSize: 13
@@ -290,5 +292,31 @@ Window {
         }
     }
 
+    ListView {
+         width: 180; height: 200
 
+         model: gListModel
+         delegate: Button {
+             text: _code + ": " + _seri
+             onClicked: {
+                 console.log("start sfx",_code)
+                 var strModel = Storage.getSetting(_code)
+                 if(strModel != "Unknown")
+                 {
+                     var dataModel = JSON.parse(strModel)
+                     if(dataModel!=null)
+                         gCodeMap[_code] = dataModel
+                 }
+                 else
+                 {
+                     console.log("Unknown ", _code)
+                 }
+//                    Storage.getSdata()
+
+                 Storage.getSDayData(_code)
+                 console.log("sfx finish")
+             }
+         }
+     }
+    }
 }

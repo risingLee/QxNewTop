@@ -104,12 +104,12 @@ function getLocationData()
     console.log("get from location finish")
 }
 
-function getSDayData()
+function getSDayData(code)
 {
-    var dataModel = gCodeMap[cxcode]
-    getDayZhishu(dataModel);
+    var dataModel = gCodeMap[code]
+    getDayZhishu(dataModel,code);
 }
-function getDayZhishu(dataModel)
+function getDayZhishu(dataModel,cxcode)
 {
     var max = 0
     var jun = 0
@@ -126,12 +126,12 @@ function getDayZhishu(dataModel)
         index = dataModel.length-1
     }
 
-    chartsview.newLine2.axisX.min = dataModel.length - 1 - index
-    chartsview.newLine2.axisY.min = dataModel.length - 1 -index
-    chartsview.newLine2.axisX.max = dataModel.length
-    chartsview.newLine2.name = "jun"
-    chartsview.newLine2.color  ="#FFD52B1E"
-    chartsview.newLine2.clear();
+    chartsview.newLine.axisX.min = dataModel.length - 1 - index
+    chartsview.newLine.axisY.min = dataModel.length - 1 -index
+    chartsview.newLine.axisX.max = dataModel.length
+    chartsview.newLine.name = cxcode
+    chartsview.newLine.color  ="#FFD52B1E"
+    chartsview.newLine.clear();
 
     var _max = 0
     var i = index
@@ -141,12 +141,10 @@ function getDayZhishu(dataModel)
         if (_max < item.jun)
         {
             _max = item.jun
-            chartsview.newLine1.axisY.max = _max
-            chartsview.newLine2.axisY.max = _max
-            chartsview.newLine3.axisY.max = _max
+            chartsview.newLine.axisY.max = _max
         }
 
-        chartsview.newLine2.append(dataModel.length -1 -i,item.jun);
+        chartsview.newLine.append(dataModel.length -1 -i,item.jun);
 
         if(item.jun >max )
         {
@@ -156,7 +154,6 @@ function getDayZhishu(dataModel)
             min = item.min
         }
     }
-    console.log(curDay/dataModel.length)
 
 
     var dijun = Math.pow(jun,(1/(dataModel.length-1-i)) )
@@ -266,6 +263,47 @@ function getAllData2()
         }
     }
 
+}
+
+function calNewTop()
+{
+    gListModel.clear()
+    for(var j = 0; j<gcodeArray.length-1; ++j)
+    {
+        var gcode = gcodeArray[j]
+        var strModel = getSetting(gcode)
+        if(strModel != "Unknown")
+        {
+            var dataModel = JSON.parse(strModel)
+            if(dataModel!=null)
+                gCodeMap[gcode] = dataModel
+            var max = 0
+            var curDay = 0
+            for(  var i = dataModel.length -1; i >=0  ; --i )
+            {
+                var item = dataModel[i]
+                if(item.jun >max )
+                {
+                    curDay = dataModel.length-i
+                    max = item.jun
+                }
+            }
+            var s = curDay/dataModel.length
+            if (s > seri)
+            {
+                gListModel.append({
+                                    _code:gcode,
+                                      _seri: curDay/dataModel.length
+                                  })
+                console.log(gcode, "  ", curDay/dataModel.length)
+            }
+        }
+        else
+        {
+            console.log("Unknown ", gcode)
+        }
+
+    }
 }
 
 function getAllData()

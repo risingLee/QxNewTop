@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     QStringList lstData;
+    QStringList lstName;
     QFile file(QCoreApplication::applicationDirPath()+"/sh.txt");
     QTextCodec *codec = QTextCodec::codecForName("GBK");
     if (file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -25,7 +26,10 @@ int main(int argc, char *argv[])
             if (lstInfo.length() == 2)
             {
                 if(QString(lstInfo[0]).indexOf("ST") == -1)
+                {
+                    lstName.append(lstInfo[0]);
                     lstData.append( QString("sh") + QString(lstInfo[1]) );
+                }
                 //            qDebug()<<"<<SH>>"<<QString("sh") + QString(lstInfo[1]);
             }
         }
@@ -43,7 +47,10 @@ int main(int argc, char *argv[])
             if (lstInfo.length() == 2)
             {
                 if(QString(lstInfo[0]).indexOf("ST") == -1)
+                {
+                    lstName.append(lstInfo[0]);
                     lstData << QString("sz") + lstInfo[1];
+                }
                 //            qDebug()<<"<<SZ>>"<<QString("sz") + QString(lstInfo[1]);300757
             }
         }
@@ -61,12 +68,16 @@ int main(int argc, char *argv[])
             if (lstInfo.length() == 2)
             {
                 if(QString(lstInfo[0]).indexOf("ST") == -1)
+                {
+                    lstName.append(lstInfo[0]);
                     lstData << QString("sz") + lstInfo[1];
-//                            qDebug()<<"<<CZ>>"<<QString("cz") + QString(lstInfo[1]);
+                }
+                //                            qDebug()<<"<<CZ>>"<<QString("cz") + QString(lstInfo[1]);
             }
         }
         file3.close();
     }
+    engine.rootContext()->setContextProperty("g_lstName", lstName);
     engine.rootContext()->setContextProperty("g_lstData", lstData);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())
