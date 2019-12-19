@@ -104,6 +104,141 @@ function getLocationData()
     console.log("get from location finish")
 }
 
+function calAllW()
+{
+    gListModel.clear()
+    for(var j = 0; j<gcodeArray.length-1; ++j)
+    {
+        var gcode = gcodeArray[j]
+
+        var strModel = getSetting(gcode)
+        if(strModel != "Unknown")
+        {
+            var dataModel = JSON.parse(strModel)
+            if(dataModel!=null)
+                gCodeMap[gcode] = dataModel
+            getWqushi(dataModel, gcode)
+        }
+        else
+        {
+            console.log("Unknown ", gcode)
+        }
+
+
+    }
+}
+
+function getWcode(code,dataModel)
+{
+    getWqushi(dataModel, code);
+}
+
+function getWqushi(dataModel, code)
+{
+    var index = 0;
+    var curValue = dataModel[index].jun
+    var value = dataModel[index].jun
+    var low = true
+    var data = {
+        index:index,
+        value:value
+    }
+    var lashengDays = 0
+    var jishu = 0
+    curYL = 0
+    yaliArr = new Array()
+
+    while(data.index < dataModel.length -1)
+    {
+        if(low)
+        {
+            data = getLow(data.index+1,data.value, dataModel)
+            if(jishu == 0)
+            {
+                lashengDays = data.index
+            }
+
+            jishu++
+        }
+        else
+        {
+            data = getTop(data.index+1,data.value, dataModel)
+        }
+        low = !low
+    }
+
+    if(yaliArr.length >= 3)
+    {
+        var nCount = 0;
+        for(var i = 0; i < yaliArr.length; ++i)
+        {
+            if(yaliArr[i] < curValue)
+            {
+                nCount++
+            }
+        }
+
+        if(nCount == 2 && lashengDays == 1)
+        {
+            console.log(code,"突破 "+nCount+"个压力位"," 拉升天数 = "+lashengDays);
+        }
+    }
+
+}
+
+function getLow(index, value, dataModel)
+{
+
+    for(  var i = index ; i <dataModel.length -1  ; ++i )
+    {
+        var item = dataModel[i]
+        if(value > item.jun)
+        {
+            value = item.jun
+            index = i
+        }
+        else
+        {
+            break;
+        }
+    }
+    return {
+        index:index,
+        value:value
+    }
+}
+
+function getTop(index, value, dataModel)
+{
+    var nCount = 0
+    for(  var i = index ; i <dataModel.length -1  ; ++i )
+    {
+        var item = dataModel[i]
+        if(value < item.jun)
+        {
+            nCount++
+            value = item.jun
+            index = i
+        }
+        else
+        {
+            break;
+        }
+    }
+    if(value > curYL + 0.00001)
+    {
+        curYL = value
+        yaliArr.push(value)
+
+    }
+
+    return {
+        index:index,
+        value:value
+    }
+}
+
+
 function getSDayData(code)
 {
     var dataModel = gCodeMap[code]
@@ -127,7 +262,7 @@ function getDayZhishu(dataModel,cxcode)
     }
 
     chartsview.newLine.axisX.min = dataModel.length - 1 - index
-    chartsview.newLine.axisY.min = dataModel.length - 1 -index
+    chartsview.newLine.axisY.min = 0
     chartsview.newLine.axisX.max = dataModel.length
     chartsview.newLine.name = cxcode
     chartsview.newLine.color  ="#FFD52B1E"
@@ -292,7 +427,7 @@ function calNewTop()
             if (s > seri)
             {
                 gListModel.append({
-                                    _code:gcode,
+                                      _code:gcode,
                                       _seri: curDay/dataModel.length
                                   })
                 console.log(gcode, "  ", curDay/dataModel.length)

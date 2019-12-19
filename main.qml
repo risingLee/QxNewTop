@@ -19,7 +19,8 @@ Window {
     property var smonthCount: 0
     property var seri: 0.618
     property var gCodeMap: null
-
+    property var yaliArr: null
+    property var curYL:0
 
 
 
@@ -27,7 +28,7 @@ Window {
     {
         gCodeMap = {}
         Storage.initialize()
-//        Storage.getLocationData()
+        //        Storage.getLocationData()
     }
 
     // 递归获取Month
@@ -68,6 +69,7 @@ Window {
     function getSignalDayData(i){
         //        console.log("get Data:",gcodeArray[i]);
         pb.value = i
+
         XmlHttpRequest.ajax("GET","http://finance.sina.com.cn/realstock/company/"+gcodeArray[i]+"/qianfuquan.js?d=2000-06-16",function(xhr){
 
 
@@ -100,223 +102,262 @@ Window {
                 }
             }
         });
+
     }
     ListModel{id:gListModel}
     Row{
-    Column
-    {
-
-        ChartView {
-            id: chartsview;
-            width: 400
-            height: 300
-
-            visible: true
-            theme: ChartView.ChartThemeBrownSand
-            antialiasing: true
-
-            ValueAxis{
-                id: axiasX;
-                max: 500;
-                min: 0;
-            }
-
-            ValueAxis{
-                id: axiasY;
-                max: 200;
-                min: 0;
-            }
-
-            property var newLine : chartsview.createSeries(ChartView.SeriesTypeLine,"");
-//            property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"1");
-//            property var newLine2 : chartsview.createSeries(ChartView.SeriesTypeLine,"2");
-//            property var newLine3 : chartsview.createSeries(ChartView.SeriesTypeLine,"3");
-            Component.onCompleted: {
-
-            }
-        }
-
-        ProgressBar
+        Column
         {
-            id: pb
-            width: 600
-            height: 30
 
+            ChartView {
+                id: chartsview;
+                width: 400
+                height: 300
+
+                visible: true
+                theme: ChartView.ChartThemeBrownSand
+                antialiasing: true
+
+                ValueAxis{
+                    id: axiasX;
+                    max: 500;
+                    min: 0;
+                }
+
+                ValueAxis{
+                    id: axiasY;
+                    max: 200;
+                    min: 0;
+                }
+
+                property var newLine : chartsview.createSeries(ChartView.SeriesTypeLine,"");
+                //            property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"1");
+                //            property var newLine2 : chartsview.createSeries(ChartView.SeriesTypeLine,"2");
+                //            property var newLine3 : chartsview.createSeries(ChartView.SeriesTypeLine,"3");
+                Component.onCompleted: {
+
+                }
+            }
+
+            ProgressBar
+            {
+                id: pb
+                width: 600
+                height: 30
+
+            }
+
+            Row
+            {
+                Button
+                {
+                    id: btnSet
+                    text:"requestData"
+                    onClicked:{
+                        console.log("start",gcodeArray.length)
+                        Storage.initialize();
+                        //                    getSignalMonthData(0)
+                        pb.from  = 0
+                        pb.to = gcodeArray.length-1
+                        getSignalDayData(0)
+                        console.log("stop")
+                    }
+                }
+
+                Button
+                {
+                    id: btnDel
+                    text:"deleteDb"
+                    onClicked: {
+                        Storage.deleteDataBase()
+                    }
+                }
+            }
+
+
+
+            Row{
+
+                Rectangle
+                {
+                    id: txSeri
+                    width: 100
+                    height: 30
+                    border.color: "black"
+                    border.width: 1
+                    TextEdit
+                    {
+                        text:"0.618"
+                        anchors.fill: parent
+                        anchors.margins: 3
+                        font.pointSize: 13
+                        onTextChanged:
+                        {
+                            seri = Number(text)
+                        }
+                    }
+                }
+                Rectangle
+                {
+                    id: txYear
+                    width: 100
+                    height: 30
+                    border.color: "black"
+                    border.width: 1
+                    TextEdit
+                    {
+                        text:"5"
+                        anchors.fill: parent
+                        anchors.margins: 3
+                        font.pointSize: 13
+                        onTextChanged:
+                        {
+                            yearCount = Number(text)
+                        }
+                    }
+                }
+                Button
+                {
+                    id: btnFenx
+                    text:"fenxData"
+                    onClicked: {
+                        console.log("start fx",seri,monthCount)
+                        Storage.calNewTop()
+                        //Storage.getAllData()
+                        //                    getAllData2()
+                        console.log("fx finish")
+                    }
+                }
+                Button
+                {
+                    id: btnFenxW
+                    text:"fenxAllW"
+                    onClicked: {
+                        console.log("start fxW",seri,monthCount)
+                        Storage.calAllW()
+                        //Storage.getAllData()
+                        //                    getAllData2()
+                        console.log("fxW finish")
+                    }
+                }
+
+            }
+            Row
+            {
+                Rectangle
+                {
+                    id: txcode
+                    width: 100
+                    height: 30
+                    border.color: "black"
+                    border.width: 1
+                    TextEdit
+                    {
+                        text: "sh603338"
+                        anchors.fill: parent
+                        anchors.margins: 3
+                        font.pointSize: 13
+                        onTextChanged:
+                        {
+                            cxcode = text
+                        }
+                    }
+                }
+                Rectangle
+                {
+                    id: txmonth
+                    width: 100
+                    height: 30
+                    border.color: "black"
+                    border.width: 1
+                    TextEdit
+                    {
+                        text: "0"
+                        anchors.fill: parent
+                        anchors.margins: 3
+                        font.pointSize: 13
+                        onTextChanged:
+                        {
+                            smonthCount = Number(text)
+                        }
+                    }
+                }
+                Button
+                {
+                    id: btnsFenx
+                    text:"fxgp"
+                    onClicked: {
+                        console.log("start sfx",cxcode)
+                        var strModel = Storage.getSetting(cxcode)
+                        if(strModel != "Unknown")
+                        {
+                            var dataModel = JSON.parse(strModel)
+                            if(dataModel!=null)
+                                gCodeMap[cxcode] = dataModel
+                        }
+                        else
+                        {
+                            console.log("Unknown ", cxcode)
+                        }
+                        //                    Storage.getSdata()
+
+                        Storage.getSDayData(cxcode)
+                        console.log("sfx finish")
+                    }
+                }
+
+                Button
+                {
+                    id: btnsFenxW
+                    text:"fxWgp"
+                    onClicked: {
+                        console.log("start sfxW",cxcode)
+                        var strModel = Storage.getSetting(cxcode)
+                        if(strModel != "Unknown")
+                        {
+                            var dataModel = JSON.parse(strModel)
+                            if(dataModel!=null)
+                                gCodeMap[cxcode] = dataModel
+                            Storage.getWqushi(dataModel, cxcode)
+                        }
+                        else
+                        {
+                            console.log("Unknown ", cxcode)
+                        }
+                        //                    Storage.getSdata()
+
+
+                        console.log("sfxW finish")
+                    }
+                }
+            }
         }
 
-        Row
-        {
-            Button
-            {
-                id: btnSet
-                text:"requestData"
-                onClicked:{
-                    console.log("start",gcodeArray.length)
-                    Storage.initialize();
-//                    getSignalMonthData(0)
-                    pb.from  = 0
-                    pb.to = gcodeArray.length-1
-                    getSignalDayData(0)
-                    console.log("stop")
-                }
-            }
+        ListView {
+            width: 180; height: 200
 
-            Button
-            {
-                id: btnDel
-                text:"deleteDb"
+            model: gListModel
+            delegate: Button {
+                text: _code + ": " + _seri
                 onClicked: {
-                    Storage.deleteDataBase()
-                }
-            }
-        }
-
-
-
-        Row{
-
-            Rectangle
-            {
-                id: txSeri
-                width: 100
-                height: 30
-                border.color: "black"
-                border.width: 1
-                TextEdit
-                {
-                    text:"0.618"
-                    anchors.fill: parent
-                    anchors.margins: 3
-                    font.pointSize: 13
-                    onTextChanged:
-                    {
-                        seri = Number(text)
-                    }
-                }
-            }
-            Rectangle
-            {
-                id: txYear
-                width: 100
-                height: 30
-                border.color: "black"
-                border.width: 1
-                TextEdit
-                {
-                    text:"5"
-                    anchors.fill: parent
-                    anchors.margins: 3
-                    font.pointSize: 13
-                    onTextChanged:
-                    {
-                        yearCount = Number(text)
-                    }
-                }
-            }
-            Button
-            {
-                id: btnFenx
-                text:"fenxData"
-                onClicked: {
-                    console.log("start fx",seri,monthCount)
-                    Storage.calNewTop()
-                    //Storage.getAllData()
-//                    getAllData2()
-                    console.log("fx finish")
-                }
-            }
-        }
-        Row
-        {
-            Rectangle
-            {
-                id: txcode
-                width: 100
-                height: 30
-                border.color: "black"
-                border.width: 1
-                TextEdit
-                {
-                    text: "sh603338"
-                    anchors.fill: parent
-                    anchors.margins: 3
-                    font.pointSize: 13
-                    onTextChanged:
-                    {
-                        cxcode = text
-                    }
-                }
-            }
-            Rectangle
-            {
-                id: txmonth
-                width: 100
-                height: 30
-                border.color: "black"
-                border.width: 1
-                TextEdit
-                {
-                    text: "0"
-                    anchors.fill: parent
-                    anchors.margins: 3
-                    font.pointSize: 13
-                    onTextChanged:
-                    {
-                        smonthCount = Number(text)
-                    }
-                }
-            }
-            Button
-            {
-                id: btnsFenx
-                text:"fxgp"
-                onClicked: {
-                    console.log("start sfx",cxcode)
-                    var strModel = Storage.getSetting(cxcode)
+                    console.log("start sfx",_code)
+                    var strModel = Storage.getSetting(_code)
                     if(strModel != "Unknown")
                     {
                         var dataModel = JSON.parse(strModel)
                         if(dataModel!=null)
-                            gCodeMap[cxcode] = dataModel
+                            gCodeMap[_code] = dataModel
                     }
                     else
                     {
-                        console.log("Unknown ", cxcode)
+                        console.log("Unknown ", _code)
                     }
-//                    Storage.getSdata()
+                    //                    Storage.getSdata()
 
-                    Storage.getSDayData()
+                    Storage.getSDayData(_code)
                     console.log("sfx finish")
                 }
             }
         }
-    }
-
-    ListView {
-         width: 180; height: 200
-
-         model: gListModel
-         delegate: Button {
-             text: _code + ": " + _seri
-             onClicked: {
-                 console.log("start sfx",_code)
-                 var strModel = Storage.getSetting(_code)
-                 if(strModel != "Unknown")
-                 {
-                     var dataModel = JSON.parse(strModel)
-                     if(dataModel!=null)
-                         gCodeMap[_code] = dataModel
-                 }
-                 else
-                 {
-                     console.log("Unknown ", _code)
-                 }
-//                    Storage.getSdata()
-
-                 Storage.getSDayData(_code)
-                 console.log("sfx finish")
-             }
-         }
-     }
     }
 }
