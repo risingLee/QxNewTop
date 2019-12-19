@@ -12,6 +12,7 @@ Window {
     width: 640
     height: 480
     title: qsTr("Hello World")
+    property var currentCode: ""
     property var gcodeArray: g_lstData//["sz000001","sz000002","sz000003"]//
     property var cxcode: "sz300357"
     property var yearCount: 5
@@ -234,6 +235,7 @@ Window {
                     text:"fenxAllW"
                     onClicked: {
                         console.log("start fxW",seri,monthCount)
+                            gListModel.clear()
                         Storage.calAllW()
                         //Storage.getAllData()
                         //                    getAllData2()
@@ -332,6 +334,10 @@ Window {
                 }
             }
         }
+        Image
+        {
+            source: currentCode == "" ? "":"http://image.sinajs.cn/newchart/daily/n/"+currentCode+".gif"
+        }
 
         ListView {
             width: 180; height: 200
@@ -347,14 +353,15 @@ Window {
                         var dataModel = JSON.parse(strModel)
                         if(dataModel!=null)
                             gCodeMap[_code] = dataModel
+
                     }
                     else
                     {
                         console.log("Unknown ", _code)
                     }
                     //                    Storage.getSdata()
-
-                    Storage.getSDayData(_code)
+                    currentCode = _code
+//                    Storage.getSDayData(_code)
                     console.log("sfx finish")
                 }
             }

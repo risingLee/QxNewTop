@@ -106,7 +106,6 @@ function getLocationData()
 
 function calAllW()
 {
-    gListModel.clear()
     for(var j = 0; j<gcodeArray.length-1; ++j)
     {
         var gcode = gcodeArray[j]
@@ -135,53 +134,63 @@ function getWcode(code,dataModel)
 
 function getWqushi(dataModel, code)
 {
-    var index = 0;
-    var curValue = dataModel[index].jun
-    var value = dataModel[index].jun
-    var low = true
-    var data = {
-        index:index,
-        value:value
-    }
-    var lashengDays = 0
-    var jishu = 0
-    curYL = 0
-    yaliArr = new Array()
+    try{
+        var index = 0;
+        var curValue = dataModel[index].jun
+        var value = dataModel[index].jun
+        var low = true
+        var data = {
+            index:index,
+            value:value
+        }
+        var lashengDays = 0
+        var jishu = 0
+        curYL = 0
+        yaliArr = new Array()
 
-    while(data.index < dataModel.length -1)
-    {
-        if(low)
+        while(data.index < dataModel.length -1)
         {
-            data = getLow(data.index+1,data.value, dataModel)
-            if(jishu == 0)
+            if(low)
             {
-                lashengDays = data.index
+                data = getLow(data.index+1,data.value, dataModel)
+                if(jishu == 0)
+                {
+                    lashengDays = data.index
+                }
+
+                jishu++
+            }
+            else
+            {
+                data = getTop(data.index+1,data.value, dataModel)
+            }
+            low = !low
+        }
+
+        if(yaliArr.length >= 3)
+        {
+            var nCount = 0;
+            for(var i = 0; i < yaliArr.length; ++i)
+            {
+                if(yaliArr[i] < curValue)
+                {
+                    nCount++
+                }
             }
 
-            jishu++
-        }
-        else
-        {
-            data = getTop(data.index+1,data.value, dataModel)
-        }
-        low = !low
-    }
-
-    if(yaliArr.length >= 3)
-    {
-        var nCount = 0;
-        for(var i = 0; i < yaliArr.length; ++i)
-        {
-            if(yaliArr[i] < curValue)
+            if((nCount == 2||nCount ==3) && (lashengDays >= 1 && lashengDays <= 2))
             {
-                nCount++
+                console.log(code,"突破 "+nCount+"个压力位"," 拉升天数 = "+lashengDays);
+                gListModel.append({
+                                  _code:code,
+                                  _seri:nCount
+                                  })
             }
         }
+    }
+    catch(e)
+    {
 
-        if(nCount == 2 && lashengDays == 1)
-        {
-            console.log(code,"突破 "+nCount+"个压力位"," 拉升天数 = "+lashengDays);
-        }
     }
 
 }
@@ -229,7 +238,7 @@ function getTop(index, value, dataModel)
     {
         curYL = value
         yaliArr.push(value)
-
+//        console.log(value, index)
     }
 
     return {
