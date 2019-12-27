@@ -178,7 +178,7 @@ function getWqushi(dataModel, code)
                 }
             }
 
-            if((nCount == 2||nCount ==3) && (lashengDays >= 1 && lashengDays <= 2))
+            if((nCount == 5) && (lashengDays == 3))
             {
                 console.log(code,"突破 "+nCount+"个压力位"," 拉升天数 = "+lashengDays);
                 gListModel.append({
