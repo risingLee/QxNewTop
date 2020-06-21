@@ -8,9 +8,10 @@ import "Storage.js" as Storage
 import REQUEST 1.0
 Window {
     visible: true
-    width: 640
-    height: 480
+    width: 1920
+    height: 1080
     title: qsTr("Hello World")
+    property var currentMonth:new Date().getMonth()
     property var gcodeArray: g_lstData//["SZ300015","SH601788","SH601800"]//
 //    property var gcodeArray:["SZ300357"]
     property var cxcode: "SZ300015"
@@ -26,8 +27,30 @@ Window {
         gCodeMap = {}
         getLocationData()
         changeUrl.connect(r_netrequest.slot_changeUrl)
+    }
 
+    Timer
+    {
+        id: timer
+        interval: 5000; running: false; repeat: true
+        onTriggered: {
+            if(currentMonth !== new Date().getMonth() )
+            {
+                console.info("in")
+                Storage.deleteDataBase()
+                _index = 0
+                pb.minimumValue  = 0
+                pb.maximumValue = gcodeArray.length-1
+                Storage.initialize();
+                changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
 
+            }
+            else
+            {
+                console.info("not yeap")
+            }
+
+        }
     }
 
     Request{
@@ -43,7 +66,7 @@ Window {
                 pb.value = _index;
                 if(_index >= gcodeArray.length)
                     return
-                console.log("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
+                //console.log("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
                 if(gcodeArray[_index])
                     changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
 
@@ -61,9 +84,9 @@ Window {
     Column
     {
         x: 0
-        y: 5
-        width: 621
-        height: 454
+        y: 0
+        width: 1920
+        height: 1080
 
         ProgressBar
         {
@@ -92,7 +115,7 @@ Window {
                     pb.minimumValue  = 0
                     pb.maximumValue = gcodeArray.length-1
                     Storage.initialize();
-                    console.log("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
+                    //console.log("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
                     changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
                 }
             }
@@ -287,6 +310,22 @@ Window {
                 }
             }
 
+        }
+        ListModel
+        {
+            id:gListModel
+        }
+
+        ListView
+        {
+            width: parent.width
+            height: 300
+            orientation: Qt.Horizontal
+            model: gListModel
+            delegate: Image
+            {
+                source: "http://image.sinajs.cn/newchart/monthly/n/"+ _code +".gif"
+            }
         }
     }
     function getLocationData()

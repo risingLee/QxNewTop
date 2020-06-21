@@ -38,7 +38,6 @@ function setSetting(setting, value) {
         } else {
             res = "Error";
         }
-        console.log("==insert setting:",res)
     }
     );
     return res;
@@ -56,12 +55,13 @@ function getAllSetting()
                 var gcode = rs.rows.item(i).setting;
                 var value = rs.rows.item(i).value;
                 var dataModel = JSON.parse(value)
+//                console.info(gcode, value)
                 if(dataModel!=null)
                     gCodeMap[gcode] = dataModel
             }
         } else {
             res = "Unknown";
-            console.log(res)
+
         }
     })
 }
@@ -83,8 +83,8 @@ function getSetting(setting) {
 
 function calNewTop(status)
 {
-//    gListModel.clear()
-    console.log(gcodeArray.length)
+    gListModel.clear()
+
     for(var j = 0; j<gcodeArray.length-1; ++j)
     {
 
@@ -125,10 +125,10 @@ function calNewTop(status)
             var s = curDay/dataModel.length
             if (s < serigao+0.01 && s >= serigao)
             {
-//                gListModel.append({
-//                                      _code:gcode,
-//                                      _seri: curDay/dataModel.length
-//                                  })
+                gListModel.append({
+                                      _code:gcode.toLowerCase(),
+                                      _seri: curDay/dataModel.length
+                                  })
                 console.log(gcode, "  ", curDay/dataModel.length)
             }
         }

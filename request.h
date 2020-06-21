@@ -21,6 +21,7 @@ public slots:
 private:
     QString m_url;
     QNetworkAccessManager * rmanager;
+    QNetworkAccessManager *manager;
     void rrun();
      QList<QNetworkCookie> allcookies;
          QNetworkRequest request;

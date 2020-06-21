@@ -14,41 +14,13 @@ Request::Request()
     connect(getreply, SIGNAL(finished()), &loop, SLOT(quit()));
     //子进程开始运行
     loop.exec();
-
     allcookies=nManager.cookieJar()->cookiesForUrl(QUrl("https://xueqiu.com/"));
-    qDebug()<<"init"<<allcookies;
-
-//    QVariant var;
-//    var.setValue(allcookies);
-//    request.setHeader(QNetworkRequest::CookieHeader,var);
 }
 
 void Request::slot_changeUrl(QString url)
 {
-    if(index == guidingCount)
-    {
-        QNetworkRequest req;
-        req.setUrl(QUrl("https://xueqiu.com/"));
-        QNetworkAccessManager nManager;
-        QNetworkReply* getreply=nManager.get(req);
-        QEventLoop loop;
-        //下载完成后，直接退出子进程
-        connect(getreply, SIGNAL(finished()), &loop, SLOT(quit()));
-        //子进程开始运行
-        loop.exec();
-
-        allcookies=nManager.cookieJar()->cookiesForUrl(QUrl("https://xueqiu.com/"));
-        qDebug()<<"init"<<allcookies;
-
-//        QVariant var;
-//        var.setValue(allcookies);
-//        request.setHeader(QNetworkRequest::CookieHeader,var);
-        index = 0;
-    }
-    ++index;
     m_url = url;
     start();
-//    rrun();
 }
 
 void Request::run()
@@ -67,7 +39,10 @@ void Request::run()
     connect(pTimeout, &QReplyTimeout::timeout, [=]() {
         qDebug() << "Timeout";
         emit responseFaild();
+        manager->deleteLater();
+        pTimeout->deleteLater();
         this->quit();
+
     });
 
     //多线程下载数据 成功
@@ -77,6 +52,7 @@ void Request::run()
         emit responseSuccessful(str);
         qreply->abort();
         qreply->deleteLater();
+        manager->deleteLater();
         this->quit();
 
     }
