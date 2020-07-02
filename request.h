@@ -11,6 +11,8 @@ class Request : public QThread
     Q_OBJECT
 public:
     Request();
+    Q_INVOKABLE void saveKLine(QString code, QString value);
+    Q_INVOKABLE QString getKLine(QString code);
 protected:
     void run();
 signals:
@@ -28,4 +30,4 @@ private:
 };
 
 #endif // REQUEST_H
-//SZ000533 SH603866 SZ002880
+

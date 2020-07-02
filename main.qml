@@ -1,7 +1,7 @@
 ﻿import QtQuick 2.6
 import QtQuick.Controls 1.4
-//import QtWebEngine 1.5
-//import QtWebChannel 1.0
+
+import QtQuick.Layouts 1.3
 import QtQuick.Window 2.2
 import "xmlhttprequest.js" as XmlHttpRequest
 import "Storage.js" as Storage
@@ -14,7 +14,7 @@ Window {
     title: qsTr("Hello World")
     property var currentMonth:new Date().getMonth()
     property var gcodeArray: g_lstData//["SZ300015","SH601788","SH601800"]//
-//    property var gcodeArray:["SZ300357"]
+    //    property var gcodeArray:["SZ300357"]
     property var cxcode: "SZ300015"
     property var yearCount: 5
     property var monthCount: yearCount*12
@@ -22,14 +22,16 @@ Window {
     property var seri: 0.5
     property var serigao: 0.5
     property var gCodeMap: null
-    property var DATAURL: "https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="
-    property var DAYURL: "&begin=1593759367604&period=day&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance"
-    property var MONURL: "&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;"
+    property var gCodeMapD: null
+    property var _DATAURL: "https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="
+    property var _DAYURL: "&begin=1593759367604&period=day&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance"
+    property var _MONURL: "&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;"
     signal changeUrl(var url)
     property var _index: 0
     Component.onCompleted: {
         gCodeMap = {}
-        Contrllor.getLocationData()
+        gCodeMapD = {}
+        //Contrllor.getLocationData()
         changeUrl.connect(r_netrequest.slot_changeUrl)
     }
 
@@ -46,7 +48,7 @@ Window {
                 pb.minimumValue  = 0
                 pb.maximumValue = gcodeArray.length-1
                 Storage.initialize();
-                changeUrl(DATAURL+gcodeArray[_index]+MONURL)
+                changeUrl(_DATAURL + gcodeArray[_index] + _MONURL)
 
             }
             else
@@ -66,16 +68,28 @@ Window {
             if(text.length > 0)
             {
                 var obj = JSON.parse(text);
-                Contrllor.datafactory(obj.data.item, gcodeArray[_index])
+                if(cmonth.checked)
+                    Contrllor.datafactory(obj.data.item, gcodeArray[_index])
+                if(cday.checked)
+                    saveKLine(gcodeArray[_index],text)
                 ++_index;
                 pb.value = _index;
                 if(_index >= gcodeArray.length)
                     return
+
                 if(gcodeArray[_index])
-                    changeUrl(DATAURL+gcodeArray[_index]+DAYURL)
+                {
+                    if(cmonth.checked)
+
+                        changeUrl(_DATAURL+gcodeArray[_index]+_MONURL)
+                    if(cday.checked)
+                        changeUrl(_DATAURL+gcodeArray[_index]+_DAYURL)
+                }
             }
 
         }
+
+
         onResponseFaild:{
             console.log("超时失败等")
         }
@@ -98,6 +112,15 @@ Window {
             height: 30
 
         }
+        GroupBox {
+            title: qsTr("Synchronize")
+            RowLayout {
+                anchors.fill: parent
+                CheckBox { id: cday;text: qsTr("day") }
+                CheckBox { id: cweel;text: qsTr("week") }
+                CheckBox { id: cmonth;text: qsTr("month") }
+            }
+        }
         TextInput
         {
             id: cookieTx
@@ -117,8 +140,15 @@ Window {
                 {
                     pb.minimumValue  = 0
                     pb.maximumValue = gcodeArray.length-1
-                    Storage.initialize();
-                    changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+gcodeArray[_index]+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
+                    if(cmonth.checked){
+                        Storage.initialize();
+                        changeUrl(_DATAURL+gcodeArray[_index]+_MONURL)
+                    }
+                    if(cday.checked)
+                    {
+                        Storage.initializeD();
+                        changeUrl(_DATAURL+gcodeArray[_index]+_DAYURL)
+                    }
                 }
             }
 
@@ -159,9 +189,9 @@ Window {
             }
 
         }
-        
-        
-        
+
+
+
         Row
         {
             Rectangle
@@ -214,7 +244,7 @@ Window {
                 }
             }
         }
-        
+
         Row{
 
             Rectangle
@@ -263,12 +293,11 @@ Window {
                 onClicked: {
                     console.log("start fx",seri,monthCount)
                     Contrllor.getAllData()
-                    //                    getAllData2()
                     console.log("fx finish")
                 }
             }
         }
-        
+
         Row {
             RadioButton {
                 id: radioButton
@@ -309,6 +338,18 @@ Window {
 
                     Storage.calNewTop(status)
                     console.log("fx finish")
+                }
+            }
+            Button {
+                id: btnSCanKLine
+                height: 30
+                text: "日线扫描"
+                onClicked: {
+                    console.log("start kline Scan")
+
+
+                    Storage.scanKLines()
+                    console.log("kline Scan finish")
                 }
             }
 

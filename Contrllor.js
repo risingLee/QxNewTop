@@ -242,7 +242,10 @@ function datafactory(dataArray, gcode)
                                    })
                 }
             }
-            console.log(gcode,Storage.setSetting(gcode,JSON.stringify(dataModel)))
+            if(cmonth.checked)
+                console.log(gcode,Storage.setSetting(gcode,JSON.stringify(dataModel)))
+            if(cday.checked)
+                console.log(gcode,Storage.setSettingD(gcode,JSON.stringify(dataModel)))
             //                console.log(gcode,JSON.stringify(dataModel))
         }
     }catch(e)

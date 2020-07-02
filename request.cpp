@@ -1,5 +1,7 @@
 ﻿#include "request.h"
 #include <QDebug>
+#include <QFile>
+#include <QCoreApplication>
 #include <QEventLoop>
 #include <QTextCodec>
 Request::Request()
@@ -15,6 +17,23 @@ Request::Request()
     //子进程开始运行
     loop.exec();
     allcookies=nManager.cookieJar()->cookiesForUrl(QUrl("https://xueqiu.com/"));
+}
+
+QString Request::getKLine(QString code)
+{
+    QFile f(QCoreApplication::applicationDirPath()+"/"+code+".txt");
+    f.open(QIODevice::ReadOnly);
+    QString value = f.readAll();
+    f.close();
+    return value;
+}
+
+void Request::saveKLine(QString code, QString value)
+{
+    QFile f(QCoreApplication::applicationDirPath()+"/"+code+".txt");
+    f.open(QIODevice::WriteOnly);
+    f.write(value.toLatin1());
+    f.close();
 }
 
 void Request::slot_changeUrl(QString url)
