@@ -1,4 +1,4 @@
-#ifndef REQUEST_H
+﻿#ifndef REQUEST_H
 #define REQUEST_H
 
 #include <QThread>
@@ -22,11 +22,9 @@ private:
     QString m_url;
     QNetworkAccessManager * rmanager;
     QNetworkAccessManager *manager;
-    void rrun();
-     QList<QNetworkCookie> allcookies;
-         QNetworkRequest request;
-     int guidingCount = 300;
-     int index = 0;
+    QList<QNetworkCookie> allcookies;
+    QNetworkRequest request;
+
 };
 
 #endif // REQUEST_H

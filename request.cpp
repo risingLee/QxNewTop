@@ -1,4 +1,4 @@
-#include "request.h"
+﻿#include "request.h"
 #include <QDebug>
 #include <QEventLoop>
 #include <QTextCodec>
@@ -60,24 +60,3 @@ void Request::run()
     this->exec();
 }
 
-void Request::rrun()
-{
-
-    request.setUrl(QUrl(m_url) );
-    QNetworkReply * qreply= rmanager->get(request );
-    QReplyTimeout *pTimeout = new QReplyTimeout(qreply, 10000);
-    //下载超时
-    connect(pTimeout, &QReplyTimeout::timeout, [=]() {
-        qDebug() << "Timeout";
-        emit responseFaild();
-    });
-
-    //多线程下载数据 成功
-    connect(rmanager,&QNetworkAccessManager::finished,[=](){
-        QString str = qreply->readAll();
-        emit responseSuccessful(str);
-//        qreply->abort();
-//        qreply->deleteLater();
-    }
-    );
-}
