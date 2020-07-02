@@ -3,5 +3,6 @@
         <file>main.qml</file>
         <file>xmlhttprequest.js</file>
         <file>Storage.js</file>
+        <file>Contrllor.js</file>
     </qresource>
 </RCC>
