@@ -11,8 +11,8 @@ class Request : public QThread
     Q_OBJECT
 public:
     Request();
-    Q_INVOKABLE void saveKLine(QString code, QString value);
-    Q_INVOKABLE QString getKLine(QString code);
+    Q_INVOKABLE void saveKLine(QString code, QString type, QString value);
+    Q_INVOKABLE QString getKLine(QString code, QString type);
 protected:
     void run();
 signals:

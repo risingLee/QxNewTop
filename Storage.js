@@ -1,4 +1,4 @@
-.import QtQuick.LocalStorage 2.0 as Sql
+﻿.import QtQuick.LocalStorage 2.0 as Sql
 function getDatabase() {
     return Sql.LocalStorage.openDatabaseSync("MyAppName", "1.0", "StorageDatabase", 100000);
 }
@@ -90,7 +90,7 @@ function getAllSetting()
                 var gcode = rs.rows.item(i).setting;
                 var value = rs.rows.item(i).value;
                 var dataModel = JSON.parse(value)
-//                console.info(gcode, value)
+                //                console.info(gcode, value)
                 if(dataModel!=null)
                     gCodeMap[gcode] = dataModel
             }
@@ -112,7 +112,7 @@ function getAllSettingD()
                 var gcode = rs.rows.item(i).setting;
                 var value = rs.rows.item(i).value;
                 var dataModel = JSON.parse(value)
-//                console.info(gcode, value)
+                //                console.info(gcode, value)
                 if(dataModel!=null)
                     gCodeMapD[gcode] = dataModel
             }
@@ -153,14 +153,67 @@ function getSettingD(setting) {
     return res
 }
 
+function getDayKLine(code, type)
+{
+    return r_netrequest.getKLine(code, type)
+}
+
 function scanKLines()
 {
+    gListModel.clear()
     for(var i = 0; i <gcodeArray.length; ++i)
     {
-        console.info("==============" )
-        console.info(gcodeArray[i] )
-        var value = r_netrequest.getKLine(gcodeArray[i])
-        console.info( value.length )
+        var type = ""
+        if(cday.checked)
+            type = "day"
+        if(cmonth.checked)
+            type = "mounth"
+
+        var value = getDayKLine(gcodeArray[i], type )
+        scalDayNewTopCount(value)
+
+    }
+}
+
+function scalDayNewTopCount(value)
+{
+
+    var obj = JSON.parse(value )
+    var data = obj.data;
+    if(!!data)
+    {
+        var symbol = data.symbol
+        var column = data.column
+        var item = data.item
+
+        var newCount = 0;
+        var totalCount = item.length
+        var newMax = 0;
+        if(!!item)
+            for(var i = 0; i < totalCount; ++i)
+            {
+                var time = item[i][0]
+                if(time < 1151827576000)
+                    continue;
+                var open = item[i][2]
+                var close = item[i][5]
+                if(close > open)
+                {
+                    if(close > newMax)
+                    {
+                        newMax = close
+                        newCount++
+                    }
+                }
+            }
+        if(newCount/totalCount > 0.05)
+        {
+            gListModel.append({
+                                  _code:symbol.toLowerCase(),
+                                  _seri: newCount/totalCount
+                              })
+            console.info("symbol:",symbol,"newCount:",newCount,"totalCount:",totalCount, newCount/totalCount * 100,"%")
+        }
     }
 }
 
@@ -217,7 +270,7 @@ function calNewTop(status)
         }
         else
         {
-//            console.log("Unknown ", gcode)
+            //            console.log("Unknown ", gcode)
         }
 
     }

@@ -1,5 +1,6 @@
 ﻿#include "request.h"
 #include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QCoreApplication>
 #include <QEventLoop>
@@ -19,18 +20,27 @@ Request::Request()
     allcookies=nManager.cookieJar()->cookiesForUrl(QUrl("https://xueqiu.com/"));
 }
 
-QString Request::getKLine(QString code)
+QString Request::getKLine(QString code, QString type)
 {
-    QFile f(QCoreApplication::applicationDirPath()+"/"+code+".txt");
+    QString dirPath = QCoreApplication::applicationDirPath()+"/"+type;
+    QDir d;
+    if(!d.exists(dirPath))
+       return "";
+
+    QFile f(dirPath+"/"+code+".txt");
     f.open(QIODevice::ReadOnly);
     QString value = f.readAll();
     f.close();
     return value;
 }
 
-void Request::saveKLine(QString code, QString value)
+void Request::saveKLine(QString code, QString type, QString value)
 {
-    QFile f(QCoreApplication::applicationDirPath()+"/"+code+".txt");
+    QString dirPath = QCoreApplication::applicationDirPath()+"/"+type;
+    QDir d;
+    if(!d.exists(dirPath))
+        d.mkdir(dirPath);
+    QFile f(dirPath+"/"+code+".txt");
     f.open(QIODevice::WriteOnly);
     f.write(value.toLatin1());
     f.close();

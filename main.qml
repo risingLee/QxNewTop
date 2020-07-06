@@ -70,8 +70,15 @@ Window {
                 var obj = JSON.parse(text);
                 if(cmonth.checked)
                     Contrllor.datafactory(obj.data.item, gcodeArray[_index])
+                var type = ""
                 if(cday.checked)
-                    saveKLine(gcodeArray[_index],text)
+                {
+
+
+                    type = "day"
+
+                    saveKLine(gcodeArray[_index],type,text)
+                }
                 ++_index;
                 pb.value = _index;
                 if(_index >= gcodeArray.length)
@@ -116,7 +123,7 @@ Window {
             title: qsTr("Synchronize")
             RowLayout {
                 anchors.fill: parent
-                CheckBox { id: cday;text: qsTr("day") }
+                CheckBox { id: cday;checked: true;text: qsTr("day") }
                 CheckBox { id: cweel;text: qsTr("week") }
                 CheckBox { id: cmonth;text: qsTr("month") }
             }
