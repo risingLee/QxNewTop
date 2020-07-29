@@ -1,4 +1,6 @@
 ﻿
+
+
 // 递归获取月线
 function getSignalMonthData(i){
     //        console.log("get Data:",gcodeArray[i]);

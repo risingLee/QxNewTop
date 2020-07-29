@@ -243,7 +243,7 @@ Window {
             {
                 id: btnsFenx
                 height: 30
-                text:"买卖点计算"
+                text:"买卖D计算"
                 onClicked: {
                     console.log("start sfx",cxcode)
                     Contrllor.getSdata()
@@ -296,7 +296,7 @@ Window {
             {
                 id: btnFenx
                 height: 30
-                text:"概率选股"
+                text:"概率选G"
                 onClicked: {
                     console.log("start fx",seri,monthCount)
                     Contrllor.getAllData()
@@ -334,7 +334,7 @@ Window {
             Button {
                 id: btnFenx1
                 height: 30
-                text: "高点选股"
+                text: "高点选G"
                 onClicked: {
                     console.log("start fx",serigao)
                     var status = 1
@@ -350,13 +350,24 @@ Window {
             Button {
                 id: btnSCanKLine
                 height: 30
-                text: "日线扫描"
+                text: "日X扫描"
                 onClicked: {
                     console.log("start kline Scan")
 
 
                     Storage.scanKLines()
                     console.log("kline Scan finish")
+                }
+            }
+            Button {
+                height: 30
+                text: "振幅相似度"
+                onClicked: {
+                    console.log("start Xsd Scan")
+
+
+                    Storage.scanGz()
+                    console.log("kline Xsd finish")
                 }
             }
 
