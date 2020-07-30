@@ -226,21 +226,27 @@ function compare001(value001, value)
 
 function findYaLi()
 {
-    //    codes.forEach(function(code){
-    var value = getDayKLine("SH601200", "day" )
-    calYaLi(value)
-    //    })
+
+    for(var i = 0; i <gcodeArray.length; ++i)
+    {
+        var value = getDayKLine(gcodeArray[i], "day" )
+        calYaLi(value)
+    }
+
 }
 
 function calYaLi(value)
 {
     var obj = JSON.parse(value )
     var data = obj.data;
+    var oneDay = 86400000
     if(!!data)
     {
         var symbol = data.symbol
         var column = data.column
         var item = data.item
+        if(symbol === undefined)
+            return
 
         var newCount = 0;
         var totalCount = item.length
@@ -252,30 +258,31 @@ function calYaLi(value)
             var _bottom = -1
             var time = item[totalCount-1][0]
             var time1 = item[totalCount-2][0]
-            var heigh = item[totalCount-1][2] > item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
-            var heigh1 = item[totalCount-2][2] > item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
-            isUp = heigh1 > heigh
+            var heigh0 = item[totalCount-1][2] > item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
+            var heigh01 = item[totalCount-2][2] > item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
+
+            var lower = item[totalCount-1][2] < item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
+            var lower1 = item[totalCount-2][2] < item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
+
+            isUp = heigh01 > heigh0
             if(isUp === true)
-                _top = heigh1
+                _top = heigh01
             else
-                _bottom = heigh1
-            console.info(new Date(time),heigh)
-            console.info(new Date(time1),heigh1 )
+                _bottom = heigh0
+
             for(var i = totalCount-2; i > 1; --i)
             {
-                time = item[i][0]
-                time1 = item[i-1][0]
+                var time0 = item[i][0]
+                var time01 = item[i-1][0]
                 var open = item[i][2]
                 var close = item[i][5]
                 var open1 = item[i-1][2]
                 var close1 = item[i-1][5]
 
-
-
-
-                heigh = open > close ? open : close
-                heigh1 = open1 > close1 ? open1 : close1
-
+                var heigh = open > close ? open : close
+                var heigh1 = open1 > close1 ? open1 : close1
+                lower = open < close ?  open : close
+                lower1 = open1 < close1 ? open1 : close1
 
                 if(isUp === true) // up
                 {
@@ -285,8 +292,15 @@ function calYaLi(value)
                     }
                     else
                     {
-                        console.info(symbol," new top time:", new Date(time1),"top:",_top )
-                        isUp = false
+                        //console.info(symbol," 压力位:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"top:",_top )
+
+                        if((time - time0 )/oneDay < 4 && heigh0 > _top && _top !== -1)
+                        {
+                            console.info("symbol:", symbol)
+                            console.info((time - time0 )/oneDay,"天 突破",  _top ,"现价:",heigh0 )
+                            isUp = false
+                            return
+                        }
                     }
 
                 }
@@ -294,12 +308,12 @@ function calYaLi(value)
                 {
                     if(heigh1 > heigh)
                     {
-                        console.info(symbol," new bottom time:", new Date(time1),"bottom:",_bottom )
+                        //console.info(symbol," 支撑位:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
                         isUp = true
                     }
                     else
                     {
-                        _bottom = heigh1
+                        _bottom = lower1
                     }
                 }
 

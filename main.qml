@@ -24,9 +24,8 @@ Window {
     property var gCodeMap: null
     property var gCodeMapD: null
     property var _DATAURL: "https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="
-    property var _DAYURL: "&begin=1593759367604&period=day&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance"
-    property var _DAYURL2: "&begin=1593759367604&period=day&type=before&count=9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance"
-    property var _MONURL: "&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;"
+    property var _DAYURL: "&begin="+Date.parse(new Date())+"&period=day&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance"
+    property var _MONURL: "&begin="+Date.parse(new Date())+"&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;"
     signal changeUrl(var url)
     property var _index: 0
     Component.onCompleted: {
@@ -64,15 +63,17 @@ Window {
         id: r_netrequest
 
         onResponseSuccessful:{
-            console.log("成功 ", gcodeArray[_index]," id:", _index)
-            console.log(text.length)
+            var codeName = gcodeArray[_index]
             if(signalSearch)
-                return
+                codeName = textGet.text
+            console.log("成功 ", codeName," id:", _index)
+            console.log(text.length)
+
             if(text.length > 0)
             {
                 var obj = JSON.parse(text);
                 if(cmonth.checked)
-                    Contrllor.datafactory(obj.data.item, gcodeArray[_index])
+                    Contrllor.datafactory(obj.data.item, codeName)
                 var type = ""
                 if(cday.checked)
                 {
@@ -80,13 +81,14 @@ Window {
 
                     type = "day"
 
-                    saveKLine(gcodeArray[_index],type,text)
+                    saveKLine(codeName,type,text)
                 }
                 ++_index;
                 pb.value = _index;
                 if(_index >= gcodeArray.length)
                     return
-
+                if(signalSearch)
+                    return
                 if(gcodeArray[_index])
                 {
                     if(cmonth.checked)
@@ -197,8 +199,8 @@ Window {
                 text:"获取"
                 onClicked:{
                     signalSearch = true
+                    console.info(_DATAURL+textGet.text+_DAYURL)
                     changeUrl(_DATAURL+textGet.text+_DAYURL)
-                    changeUrl(_DATAURL+textGet.text+_DAYURL2)
                     //changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+textGet.text+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
                 }
             }
