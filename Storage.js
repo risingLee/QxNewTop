@@ -165,13 +165,8 @@ function scanGz()
     var value001 = getDayKLine("SH000001", "day" )
     for(var i = 0; i <gcodeArray.length; ++i)
     {
-
-        if(gcodeArray[i].indexOf("SH")>-1)
-        {
-            var value = getDayKLine(gcodeArray[i], "day" )
-            compare001(value001, value)
-        }
-
+        var value = getDayKLine(gcodeArray[i], "day" )
+        compare001(value001, value)
     }
 }
 
@@ -196,11 +191,12 @@ function compare001(value001, value)
         var count = 0;
         var start = parseInt(totalCount/2)
         var countInfo = []
-        for(var i = 0; i < totalCount; ++i)
+        var cday = 30// totalCount
+        for(var i = totalCount-cday; i < totalCount-1; ++i)
         {
-            var time = item[i][0]
-            var open = item[i][2]
-            var close = item[i][5]
+            var time = item[i+1][0]
+            var open = item[i+1][2]
+            var close = item[i+1][5]
             var time001 = item001[i][0]
             var open001 = item001[i][2]
             var close001 = item001[i][5]
@@ -208,27 +204,111 @@ function compare001(value001, value)
             {
                 count++
             }
-//            else
-//            {
-//                if(maxCount < count)
-//                    maxCount = count
-//                if(count > 0)
-//                    countInfo.push({"count":count})
-//                count = 0
-//            }
+            //            else
+            //            {
+            //                if(maxCount < count)
+            //                    maxCount = count
+            //                if(count > 0)
+            //                    countInfo.push({"count":count})
+            //                count = 0
+            //            }
         }
-        if(count/totalCount > 0.8)
+        if(count/cday >= 0.73)
         {
-//            gListModel.append({
-//                                  _code:symbol.toLowerCase(),
-//                                  _seri: count/totalCount
-//                              })
-            console.info("symbol:",symbol,"maxCount:",maxCount,"totalCount:",totalCount, count/totalCount * 100,"%",JSON.stringify(countInfo))
+            //            gListModel.append({
+            //                                  _code:symbol.toLowerCase(),
+            //                                  _seri: count/totalCount
+            //                              })
+            console.info("symbol:",symbol,"maxCount:",maxCount,"totalCount:",cday, count/cday * 100,"%",JSON.stringify(countInfo))
         }
     }
 }
 
-// 扫描日线
+function findYaLi()
+{
+    //    codes.forEach(function(code){
+    var value = getDayKLine("SH601200", "day" )
+    calYaLi(value)
+    //    })
+}
+
+function calYaLi(value)
+{
+    var obj = JSON.parse(value )
+    var data = obj.data;
+    if(!!data)
+    {
+        var symbol = data.symbol
+        var column = data.column
+        var item = data.item
+
+        var newCount = 0;
+        var totalCount = item.length
+        var newMax = 0;
+        if(!!item)
+        {
+            var isUp = true
+            var _top = -1
+            var _bottom = -1
+            var time = item[totalCount-1][0]
+            var time1 = item[totalCount-2][0]
+            var heigh = item[totalCount-1][2] > item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
+            var heigh1 = item[totalCount-2][2] > item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
+            isUp = heigh1 > heigh
+            if(isUp === true)
+                _top = heigh1
+            else
+                _bottom = heigh1
+            console.info(new Date(time),heigh)
+            console.info(new Date(time1),heigh1 )
+            for(var i = totalCount-2; i > 1; --i)
+            {
+                time = item[i][0]
+                time1 = item[i-1][0]
+                var open = item[i][2]
+                var close = item[i][5]
+                var open1 = item[i-1][2]
+                var close1 = item[i-1][5]
+
+
+
+
+                heigh = open > close ? open : close
+                heigh1 = open1 > close1 ? open1 : close1
+
+
+                if(isUp === true) // up
+                {
+                    if(heigh1 > heigh)
+                    {
+                        _top = heigh1
+                    }
+                    else
+                    {
+                        console.info(symbol," new top time:", new Date(time1),"top:",_top )
+                        isUp = false
+                    }
+
+                }
+                else // down
+                {
+                    if(heigh1 > heigh)
+                    {
+                        console.info(symbol," new bottom time:", new Date(time1),"bottom:",_bottom )
+                        isUp = true
+                    }
+                    else
+                    {
+                        _bottom = heigh1
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+// 扫描日X
 function scanKLines()
 {
     gListModel.clear()

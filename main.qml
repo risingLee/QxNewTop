@@ -25,6 +25,7 @@ Window {
     property var gCodeMapD: null
     property var _DATAURL: "https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="
     property var _DAYURL: "&begin=1593759367604&period=day&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance"
+    property var _DAYURL2: "&begin=1593759367604&period=day&type=before&count=9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance"
     property var _MONURL: "&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;"
     signal changeUrl(var url)
     property var _index: 0
@@ -58,13 +59,15 @@ Window {
 
         }
     }
-
+    property var signalSearch: false
     Request{
         id: r_netrequest
 
         onResponseSuccessful:{
             console.log("成功 ", gcodeArray[_index]," id:", _index)
             console.log(text.length)
+            if(signalSearch)
+                return
             if(text.length > 0)
             {
                 var obj = JSON.parse(text);
@@ -149,11 +152,13 @@ Window {
                     pb.maximumValue = gcodeArray.length-1
                     if(cmonth.checked){
                         Storage.initialize();
+                        signalSearch = false
                         changeUrl(_DATAURL+gcodeArray[_index]+_MONURL)
                     }
                     if(cday.checked)
                     {
                         Storage.initializeD();
+                        signalSearch = false
                         changeUrl(_DATAURL+gcodeArray[_index]+_DAYURL)
                     }
                 }
@@ -177,7 +182,7 @@ Window {
                 border.width: 1
                 TextEdit {
                     id: textGet
-                    text: "SH600001"
+                    text: "SH601200"
                     anchors.fill: parent
                     font.pointSize: 13
                     anchors.margins: 3
@@ -191,7 +196,10 @@ Window {
                 height: 30
                 text:"获取"
                 onClicked:{
-                    changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+textGet.text+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
+                    signalSearch = true
+                    changeUrl(_DATAURL+textGet.text+_DAYURL)
+                    changeUrl(_DATAURL+textGet.text+_DAYURL2)
+                    //changeUrl("https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="+textGet.text+"&begin=1582878803954&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;")
                 }
             }
 
@@ -368,6 +376,17 @@ Window {
 
                     Storage.scanGz()
                     console.log("kline Xsd finish")
+                }
+            }
+            Button {
+                height: 30
+                text: "压力监测"
+                onClicked: {
+                    console.log("start YL Scan")
+
+
+                    Storage.findYaLi()
+                    console.log("kline YL finish")
                 }
             }
 
