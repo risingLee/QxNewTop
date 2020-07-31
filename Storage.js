@@ -270,6 +270,9 @@ function calYaLi(value)
             else
                 _bottom = heigh0
 
+
+            var lowerTime = 0;
+
             for(var i = totalCount-2; i > 1; --i)
             {
                 var time0 = item[i][0]
@@ -292,15 +295,19 @@ function calYaLi(value)
                     }
                     else
                     {
-                        //console.info(symbol," 压力位:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"top:",_top )
+                        //console.info(symbol," YaLi:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"top:",_top )
 
-                        if((time - time0 )/oneDay < 4 && heigh0 > _top && _top !== -1)
+                        if((time - lowerTime )/oneDay < 4 && heigh0 > _top && _top !== -1)
                         {
-                            console.info("symbol:", symbol)
-                            console.info((time - time0 )/oneDay,"天 突破",  _top ,"现价:",heigh0 )
+                            if(heigh0  - _top %heigh0  > 0.5 )
+                            {
+                                console.info("symbol:", symbol)
+                                console.info((time - lowerTime )/oneDay, "Day Break",  _top, "time:",new Date(time0).toLocaleString(Qt.locale("de_DE") , "yyyy-MM-dd HH:mm:ss"),"Now:",heigh0 )
+                            }
                             isUp = false
-                            return
+
                         }
+                        return
                     }
 
                 }
@@ -308,8 +315,9 @@ function calYaLi(value)
                 {
                     if(heigh1 > heigh)
                     {
-                        //console.info(symbol," 支撑位:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
+                        //console.info(symbol," ZhiCheng:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
                         isUp = true
+                        lowerTime = time0
                     }
                     else
                     {
