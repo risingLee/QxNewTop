@@ -235,6 +235,8 @@ function findYaLi()
 
 }
 
+
+// JDSF
 function calYaLi(value)
 {
     var obj = JSON.parse(value )

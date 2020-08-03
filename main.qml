@@ -23,12 +23,22 @@ Window {
     property var serigao: 0.5
     property var gCodeMap: null
     property var gCodeMapD: null
+    property var curDate : new Date()
     property var _DATAURL: "https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol="
-    property var _DAYURL: "&begin="+Date.parse(new Date())+"&period=day&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance"
-    property var _MONURL: "&begin="+Date.parse(new Date())+"&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;"
+    property var _DAYURL: "&begin="+Date.parse(curDate)+"&period=day&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance"
+    property var _MONURL: "&begin="+Date.parse(curDate)+"&period=month&type=before&count=-9999&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance;"
     signal changeUrl(var url)
     property var _index: 0
     Component.onCompleted: {
+
+        if(curDate.getHours() < 15 && (curDate.getHours() >= 9 && curDate.getMinutes() > 30))
+        {
+            curDate.setHours(0)
+            curDate.setMinutes(0)
+            curDate.setSeconds(0)
+        }
+       console.info(Date.parse(curDate))
+//        console.info(value,new Date(value).toLocaleString(Qt.locale("de_DE") , "yyyy-MM-dd HH:mm:ss") )
         gCodeMap = {}
         gCodeMapD = {}
         //Contrllor.getLocationData()
