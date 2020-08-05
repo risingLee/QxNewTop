@@ -4,6 +4,7 @@
 #include <QQmlApplicationEngine>
 #include <QDebug>
 #include <QFile>
+#include "calData.h"
 #include "request.h"
 #include <QTextCodec>
 int main(int argc, char *argv[])
@@ -68,7 +69,8 @@ int main(int argc, char *argv[])
         }
         file3.close();
     }
-    qmlRegisterType<Request>("REQUEST", 1, 0, "Request");// QML导入的时候就是import REQUEST 1.0
+    qmlRegisterType<Request>("REQUEST", 1, 0, "Request");
+    qmlRegisterType<Request>("CALDATA", 1, 0, "CalData");
     engine.rootContext()->setContextProperty("g_lstData", lstData);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())
