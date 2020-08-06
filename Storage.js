@@ -330,6 +330,7 @@ function calYaLiMax(value)
                                 time0 = item[i][0]
                                 maxTop = _top
                             }
+
                         }
                         if(maxTop < _top)
                             return
@@ -352,7 +353,9 @@ function calYaLiMax(value)
 
             }
             gListModel.append({
-                                  _code:symbol.toLowerCase(),
+                                  _name: "name",
+                                  _code: symbol.toLowerCase(),
+                                  _item: item,
                                   _seri: newCount/totalCount
                               })
             console.info(symbol,"find YaLi:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"top:",maxTop )

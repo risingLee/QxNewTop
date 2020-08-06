@@ -27,7 +27,7 @@ QString Request::getKLine(QString code, QString type)
     if(!d.exists(dirPath))
        return "";
 
-    QFile f(dirPath+"/"+code+".txt");
+    QFile f(dirPath+"/"+code);
     f.open(QIODevice::ReadOnly);
     QString value = f.readAll();
     f.close();
@@ -40,7 +40,7 @@ void Request::saveKLine(QString code, QString type, QString value)
     QDir d;
     if(!d.exists(dirPath))
         d.mkdir(dirPath);
-    QFile f(dirPath+"/"+code+".txt");
+    QFile f(dirPath+"/"+code);
     f.open(QIODevice::WriteOnly);
     f.write(value.toLatin1());
     f.close();
