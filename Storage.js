@@ -355,7 +355,7 @@ function calYaLiMax(value)
             gListModel.append({
                                   _name: "name",
                                   _code: symbol.toLowerCase(),
-                                  _item: item,
+                                  _data: data,
                                   _seri: newCount/totalCount
                               })
             console.info(symbol,"find YaLi:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"top:",maxTop )

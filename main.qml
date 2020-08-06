@@ -7,6 +7,7 @@ import "xmlhttprequest.js" as XmlHttpRequest
 import "Storage.js" as Storage
 import "Contrllor.js" as Contrllor
 import REQUEST 1.0
+import QtCharts 2.2
 Window {
     visible: true
     width: 1920
@@ -87,7 +88,7 @@ Window {
                 var type = ""
                 if(cday.checked)
                 {
-                    type = "day"   
+                    type = "day"
                 }
                 if(cmonth.checked)
                 {
@@ -416,9 +417,33 @@ Window {
             height: 300
             orientation: Qt.Horizontal
             model: gListModel
-            delegate: Image
-            {
-                source: "http://image.sinajs.cn/newchart/monthly/n/"+ _code +".gif"
+            delegate:  ChartView {
+                id: chartsview;
+                width: 400
+                height: 300
+
+                visible: true
+                theme: ChartView.ChartThemeBrownSand
+                antialiasing: true
+
+
+                property var newLine : chartsview.createSeries(ChartView.SeriesTypeLine,gListModel.get(index)._code);
+                //            property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"1");
+                //            property var newLine2 : chartsview.createSeries(ChartView.SeriesTypeLine,"2");
+                //            property var newLine3 : chartsview.createSeries(ChartView.SeriesTypeLine,"3");
+                Component.onCompleted: {
+                    var item = gListModel.get(index)._data.item
+                    chartsview.axisX(newLine).max = item.length;
+                    var max = 0
+                    for (var i = 0; i  < item.length; i++) {
+                        console.info(item[i][2] > item[i][5] ? item[i][2] : item[i][5])
+                        var heigh = item[i][2] > item[i][5] ? item[i][2] : item[i][5]
+                        newLine.append(i, heigh);
+                        if(heigh>max)
+                            max = heigh
+                    }
+                    chartsview.axisY(newLine).max = max;
+                }
             }
         }
     }
