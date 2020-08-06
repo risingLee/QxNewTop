@@ -10,9 +10,10 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-   QApplication   app(argc,argv);
+    QApplication   app(argc,argv);
 
     QQmlApplicationEngine engine;
+    QStringList lstName;
     QStringList lstData;
     QFile file(QCoreApplication::applicationDirPath()+"/sh.txt");
     QTextCodec *codec = QTextCodec::codecForName("GBK");
@@ -28,8 +29,11 @@ int main(int argc, char *argv[])
             if (lstInfo.length() == 2)
             {
                 if(QString(lstInfo[0]).indexOf("ST") == -1)
+                {
+                    lstName.append(lstInfo[0]);
                     lstData.append( QString("SH") + QString(lstInfo[1]) );
-                //            qDebug()<<"<<SH>>"<<QString("sh") + QString(lstInfo[1]);
+                    //            qDebug()<<"<<SH>>"<<QString("sh") + QString(lstInfo[1]);
+                }
             }
         }
         file.close();
@@ -46,7 +50,10 @@ int main(int argc, char *argv[])
             if (lstInfo.length() == 2)
             {
                 if(QString(lstInfo[0]).indexOf("ST") == -1)
+                {
+                    lstName.append(lstInfo[0]);
                     lstData << QString("SZ") + lstInfo[1];
+                }
                 //            qDebug()<<"<<SZ>>"<<QString("sz") + QString(lstInfo[1]);300757
             }
         }
@@ -64,14 +71,18 @@ int main(int argc, char *argv[])
             if (lstInfo.length() == 2)
             {
                 if(QString(lstInfo[0]).indexOf("ST") == -1)
+                {
+                    lstName.append(lstInfo[0]);
                     lstData << QString("SZ") + lstInfo[1];
-//                            qDebug()<<"<<CZ>>"<<QString("cz") + QString(lstInfo[1]);
+                }
+                //                            qDebug()<<"<<CZ>>"<<QString("cz") + QString(lstInfo[1]);
             }
         }
         file3.close();
     }
     qmlRegisterType<Request>("REQUEST", 1, 0, "Request");
     qmlRegisterType<Request>("CALDATA", 1, 0, "CalData");
+    engine.rootContext()->setContextProperty("g_lstName", lstName);
     engine.rootContext()->setContextProperty("g_lstData", lstData);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())

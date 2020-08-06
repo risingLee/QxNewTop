@@ -231,7 +231,7 @@ function findYaLiMax()
     for(var i = 0; i <gcodeArray.length; ++i)
     {
         var value = getKLine(gcodeArray[i], "month" )
-        calYaLiMax(value)
+        calYaLiMax(value, gnameArray[i])
     }
 
 }
@@ -248,7 +248,7 @@ function findYaLi()
 }
 
 // JDSF
-function calYaLiMax(value)
+function calYaLiMax(value, name)
 {
     try
     {
@@ -353,7 +353,7 @@ function calYaLiMax(value)
 
             }
             gListModel.append({
-                                  _name: "name",
+                                  _name: name,
                                   _code: symbol.toLowerCase(),
                                   _data: data,
                                   _seri: newCount/totalCount

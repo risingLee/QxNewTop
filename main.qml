@@ -14,6 +14,7 @@ Window {
     height: 1080
     title: qsTr("Hello World")
     property var currentMonth:new Date().getMonth()
+    property var gnameArray: g_lstName
     property var gcodeArray: g_lstData//["SZ300015","SH601788","SH601800"]//
     //    property var gcodeArray:["SZ300357"]
     property var cxcode: "SZ300015"
@@ -38,8 +39,8 @@ Window {
             curDate.setMinutes(0)
             curDate.setSeconds(0)
         }
-       console.info(Date.parse(curDate))
-//        console.info(value,new Date(value).toLocaleString(Qt.locale("de_DE") , "yyyy-MM-dd HH:mm:ss") )
+        console.info(Date.parse(curDate))
+        //        console.info(value,new Date(value).toLocaleString(Qt.locale("de_DE") , "yyyy-MM-dd HH:mm:ss") )
         gCodeMap = {}
         gCodeMapD = {}
         //Contrllor.getLocationData()
@@ -427,22 +428,33 @@ Window {
                 antialiasing: true
 
 
-                property var newLine : chartsview.createSeries(ChartView.SeriesTypeLine,gListModel.get(index)._code);
-                //            property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"1");
+                property var newLine : chartsview.createSeries(ChartView.SeriesTypeLine,gListModel.get(index)._code + gListModel.get(index)._name);
+                property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"next");
                 //            property var newLine2 : chartsview.createSeries(ChartView.SeriesTypeLine,"2");
                 //            property var newLine3 : chartsview.createSeries(ChartView.SeriesTypeLine,"3");
                 Component.onCompleted: {
                     var item = gListModel.get(index)._data.item
-                    chartsview.axisX(newLine).max = item.length;
+                    chartsview.axisX(newLine).max = item.length+20;
                     var max = 0
+                    var curMonth = 0
                     for (var i = 0; i  < item.length; i++) {
-                        console.info(item[i][2] > item[i][5] ? item[i][2] : item[i][5])
+
                         var heigh = item[i][2] > item[i][5] ? item[i][2] : item[i][5]
                         newLine.append(i, heigh);
                         if(heigh>max)
+                        {
                             max = heigh
+                            curMonth = i
+                        }
                     }
+
+                    var dimax = Math.pow(max,(1/curMonth) )
+//                    console.log( "底max:",dimax,"下1", Math.pow(dimax, dataModel.length+1), "下2",Math.pow(dimax, dataModel.length+2), "下3",Math.pow(dimax, dataModel.length+3)  )
+                    newLine1.append(item.length+1,Math.pow(dimax, item.length+2))
+                    newLine1.color = Qt.tint(newLine1.color, "red");
+
                     chartsview.axisY(newLine).max = max;
+                    chartsview.axisY(newLine1).max = Math.pow(dimax, item.length+2);
                 }
             }
         }
