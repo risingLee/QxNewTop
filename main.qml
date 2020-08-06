@@ -87,12 +87,14 @@ Window {
                 var type = ""
                 if(cday.checked)
                 {
-
-
-                    type = "day"
-
-                    saveKLine(codeName,type,text)
+                    type = "day"   
                 }
+                if(cmonth.checked)
+                {
+                    type = "month"
+                }
+
+                saveKLine(codeName,type,text)
                 ++_index;
                 pb.value = _index;
                 if(_index >= gcodeArray.length)
@@ -319,7 +321,7 @@ Window {
                 text:"概率选G"
                 onClicked: {
                     console.log("start fx",seri,monthCount)
-                    Contrllor.getAllData()
+                    Storage.findYaLiMax()
                     console.log("fx finish")
                 }
             }
