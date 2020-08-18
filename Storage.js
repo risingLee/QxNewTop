@@ -247,6 +247,108 @@ function findYaLi()
 
 }
 
+function newTopSeir(value, name)
+{
+    try
+    {
+    var obj = JSON.parse(value )
+    var data = obj.data;
+    var oneDay = 86400000
+    if(!!data)
+    {
+        var symbol = data.symbol
+        var column = data.column
+        var item = data.item
+        if(symbol === undefined)
+            return
+
+        var newCount = 0;
+        var totalCount = item.length
+        var newMax = 0;
+        if(!!item)
+        {
+            var isUp = true
+            var _top = -1
+            var _bottom = -1
+            var time = item[totalCount-1][0]
+            var time1 = item[totalCount-2][0]
+            var heigh0 = item[totalCount-1][2] > item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
+            var heigh01 = item[totalCount-2][2] > item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
+
+            var lower = item[totalCount-1][2] < item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
+            var lower1 = item[totalCount-2][2] < item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
+
+            isUp = heigh01 > heigh0
+            if(isUp === true)
+                _top = heigh01
+            else
+                _bottom = heigh0
+
+
+            var lowerTime = 0;
+
+
+            if(totalCount < 48)
+                return
+            var lastMaxYali = _top
+            for(var i = totalCount-2; i > 1; --i)
+            {
+                var time0 = item[i][0]
+
+                var time01 = item[i-1][0]
+                var open = item[i][2]
+                var close = item[i][5]
+                var open1 = item[i-1][2]
+                var close1 = item[i-1][5]
+
+                var heigh = open > close ? open : close
+                var heigh1 = open1 > close1 ? open1 : close1
+                lower = open < close ?  open : close
+                lower1 = open1 < close1 ? open1 : close1
+
+                if(isUp === true) // up
+                {
+                    if(heigh1 > heigh)
+                    {
+
+                        _top = heigh1
+                    }
+                    else
+                    {
+                        isUp = false
+//                        console.info(symbol," Yali:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"_top:",_top )
+                        if(_top > lastMaxYali)
+                        {
+                            lastMaxYali = _top
+                            console.info(symbol,"max:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"_top:",_top )
+                        }
+                    }
+
+                }
+                else // down
+                {
+                    if(heigh1 > heigh)
+                    {
+//                        console.info(symbol," ZhiCheng:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
+                        isUp = true
+                        lowerTime = time0
+                    }
+                    else
+                    {
+                        _bottom = lower1
+                    }
+                }
+
+            }
+
+        }
+    }
+    }
+    catch(e)
+    {
+    }
+}
+
 // JDSF
 function calYaLiMax(value, name)
 {

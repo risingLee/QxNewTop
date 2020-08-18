@@ -433,6 +433,9 @@ Window {
                 //            property var newLine2 : chartsview.createSeries(ChartView.SeriesTypeLine,"2");
                 //            property var newLine3 : chartsview.createSeries(ChartView.SeriesTypeLine,"3");
                 Component.onCompleted: {
+                    var value = Storage.getKLine(gListModel.get(index)._code, "month" )
+                    Storage.newTopSeir(value, gListModel.get(index)._code)
+
                     var item = gListModel.get(index)._data.item
                     chartsview.axisX(newLine).max = item.length+20;
                     var max = 0
@@ -449,7 +452,6 @@ Window {
                     }
 
                     var dimax = Math.pow(max,(1/curMonth) )
-//                    console.log( "底max:",dimax,"下1", Math.pow(dimax, dataModel.length+1), "下2",Math.pow(dimax, dataModel.length+2), "下3",Math.pow(dimax, dataModel.length+3)  )
                     newLine1.append(item.length+1,Math.pow(dimax, item.length+2))
                     newLine1.color = Qt.tint(newLine1.color, "red");
 
