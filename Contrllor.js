@@ -102,6 +102,81 @@ function getLocationData()
     console.log("get from location finish")
 }
 
+function getDayArray(code)
+{
+    var value = r_netrequest.getKLine(code, "day")
+    var obj = JSON.parse(value )
+    var data = obj.data;
+    var dayCloses = []
+    if(!!data)
+    {
+        var item = data.item
+        var totalCount = item.length
+
+        for(var i = 0; i < totalCount; ++i)
+        {
+            var time = item[i][0]
+            dayCloses.push({time:time,data:Number(item[i][5]),low:Number(item[i][4])})
+        }
+    }
+    return dayCloses
+}
+
+function getBs(code,count)
+{
+    return getRsiMap(code,count)
+}
+
+function getRsiMap(code, count)
+{
+    var value = r_netrequest.getKLine(code, "day")
+    var obj = JSON.parse(value )
+    var data = obj.data;
+    var mapRsi = ({})
+    if(!!data)
+    {
+        var item = data.item
+        var totalCount = item.length
+        for(var i = count-1; i < totalCount; ++i)
+        {
+            var array = []
+            var time = item[i][0]
+            for(var j = count-1; j >= 0; --j)
+            {
+                var time1 = item[i-j][0]
+
+                array.push(Number(item[i-j][5]))
+            }
+
+            mapRsi[time] = Number(getRsi(array))
+        }
+
+    }
+    return mapRsi;
+}
+
+function getRsi(arr)
+{
+    var up = 0.0
+    var down = 0.0
+    for(var i = 1; i < arr.length; ++i)
+    {
+
+        var data = (arr[i-1] - arr[i]).toFixed(2)
+        if(data > 0)
+            down += parseFloat(data)
+        else
+            up -= data
+    }
+
+//    var rs = parseFloat(up/(up+down))
+    var rsi = 0.0
+    rsi = (100 * parseFloat(up/(up+down))).toFixed(2)
+
+    return rsi
+
+}
+
 function getSdata()
 {
     var dataModel = gCodeMap[cxcode]

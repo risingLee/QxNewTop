@@ -153,6 +153,45 @@ function getSettingD(setting) {
     return res
 }
 
+function getMa5(code, curMounth,seri)
+{
+    try
+    {
+        var value = getKLine(code, "month")
+
+        var obj = JSON.parse(value )
+        var data = obj.data;
+        var item = data.item
+        var totalCount = item.length
+        var sum4 = 0
+
+        for(var i = totalCount-1; i>0; --i)
+        {
+            var time = item[i][0]
+
+            if(curMounth > time)
+            {
+                var curIndex = i
+                for(var j = curIndex; j >= curIndex-3; --j)
+                {
+                    var ttime = item[j][0]
+                    var close = Number(item[j][5])
+                    sum4 += close
+
+                }
+
+                return parseFloat(sum4/4).toFixed(2)* (1+seri) ;
+            }
+
+        }
+    }
+    catch(e)
+    {
+        return 0
+    }
+    return 0
+}
+
 function getKLine(code, type)
 {
     return r_netrequest.getKLine(code, type)
@@ -251,98 +290,98 @@ function newTopSeir(value, name)
 {
     try
     {
-    var obj = JSON.parse(value )
-    var data = obj.data;
-    var oneDay = 86400000
-    if(!!data)
-    {
-        var symbol = data.symbol
-        var column = data.column
-        var item = data.item
-        if(symbol === undefined)
-            return
-
-        var newCount = 0;
-        var totalCount = item.length
-        var newMax = 0;
-        if(!!item)
+        var obj = JSON.parse(value )
+        var data = obj.data;
+        var oneDay = 86400000
+        if(!!data)
         {
-            var isUp = true
-            var _top = -1
-            var _bottom = -1
-            var time = item[totalCount-1][0]
-            var time1 = item[totalCount-2][0]
-            var heigh0 = item[totalCount-1][2] > item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
-            var heigh01 = item[totalCount-2][2] > item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
-
-            var lower = item[totalCount-1][2] < item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
-            var lower1 = item[totalCount-2][2] < item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
-
-            isUp = heigh01 > heigh0
-            if(isUp === true)
-                _top = heigh01
-            else
-                _bottom = heigh0
-
-
-            var lowerTime = 0;
-
-
-            if(totalCount < 48)
+            var symbol = data.symbol
+            var column = data.column
+            var item = data.item
+            if(symbol === undefined)
                 return
-            var lastMaxYali = _top
-            for(var i = totalCount-2; i > 1; --i)
+
+            var newCount = 0;
+            var totalCount = item.length
+            var newMax = 0;
+            if(!!item)
             {
-                var time0 = item[i][0]
+                var isUp = true
+                var _top = -1
+                var _bottom = -1
+                var time = item[totalCount-1][0]
+                var time1 = item[totalCount-2][0]
+                var heigh0 = item[totalCount-1][2] > item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
+                var heigh01 = item[totalCount-2][2] > item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
 
-                var time01 = item[i-1][0]
-                var open = item[i][2]
-                var close = item[i][5]
-                var open1 = item[i-1][2]
-                var close1 = item[i-1][5]
+                var lower = item[totalCount-1][2] < item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
+                var lower1 = item[totalCount-2][2] < item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
 
-                var heigh = open > close ? open : close
-                var heigh1 = open1 > close1 ? open1 : close1
-                lower = open < close ?  open : close
-                lower1 = open1 < close1 ? open1 : close1
+                isUp = heigh01 > heigh0
+                if(isUp === true)
+                    _top = heigh01
+                else
+                    _bottom = heigh0
 
-                if(isUp === true) // up
+
+                var lowerTime = 0;
+
+
+                if(totalCount < 48)
+                    return
+                var lastMaxYali = _top
+                for(var i = totalCount-2; i > 1; --i)
                 {
-                    if(heigh1 > heigh)
-                    {
+                    var time0 = item[i][0]
 
-                        _top = heigh1
-                    }
-                    else
+                    var time01 = item[i-1][0]
+                    var open = item[i][2]
+                    var close = item[i][5]
+                    var open1 = item[i-1][2]
+                    var close1 = item[i-1][5]
+
+                    var heigh = open > close ? open : close
+                    var heigh1 = open1 > close1 ? open1 : close1
+                    lower = open < close ?  open : close
+                    lower1 = open1 < close1 ? open1 : close1
+
+                    if(isUp === true) // up
                     {
-                        isUp = false
-//                        console.info(symbol," Yali:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"_top:",_top )
-                        if(_top > lastMaxYali)
+                        if(heigh1 > heigh)
                         {
-                            lastMaxYali = _top
-                            console.info(symbol,"max:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"_top:",_top )
+
+                            _top = heigh1
+                        }
+                        else
+                        {
+                            isUp = false
+                            //                        console.info(symbol," Yali:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"_top:",_top )
+                            if(_top > lastMaxYali)
+                            {
+                                lastMaxYali = _top
+                                console.info(symbol,"max:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"_top:",_top )
+                            }
+                        }
+
+                    }
+                    else // down
+                    {
+                        if(heigh1 > heigh)
+                        {
+                            //                        console.info(symbol," ZhiCheng:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
+                            isUp = true
+                            lowerTime = time0
+                        }
+                        else
+                        {
+                            _bottom = lower1
                         }
                     }
 
                 }
-                else // down
-                {
-                    if(heigh1 > heigh)
-                    {
-//                        console.info(symbol," ZhiCheng:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
-                        isUp = true
-                        lowerTime = time0
-                    }
-                    else
-                    {
-                        _bottom = lower1
-                    }
-                }
 
             }
-
         }
-    }
     }
     catch(e)
     {
@@ -354,115 +393,115 @@ function calYaLiMax(value, name)
 {
     try
     {
-    var obj = JSON.parse(value )
-    var data = obj.data;
-    var oneDay = 86400000
-    if(!!data)
-    {
-        var symbol = data.symbol
-        var column = data.column
-        var item = data.item
-        if(symbol === undefined)
-            return
-
-        var newCount = 0;
-        var totalCount = item.length
-        var newMax = 0;
-        if(!!item)
+        var obj = JSON.parse(value )
+        var data = obj.data;
+        var oneDay = 86400000
+        if(!!data)
         {
-            var isUp = true
-            var _top = -1
-            var _bottom = -1
-            var time = item[totalCount-1][0]
-            var time1 = item[totalCount-2][0]
-            var heigh0 = item[totalCount-1][2] > item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
-            var heigh01 = item[totalCount-2][2] > item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
-
-            var lower = item[totalCount-1][2] < item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
-            var lower1 = item[totalCount-2][2] < item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
-
-            isUp = heigh01 > heigh0
-            if(isUp === true)
-                _top = heigh01
-            else
-                _bottom = heigh0
-
-
-            var lowerTime = 0;
-            var maxTop = -1
-             var time0
-            if(totalCount < 48)
+            var symbol = data.symbol
+            var column = data.column
+            var item = data.item
+            if(symbol === undefined)
                 return
-            for(var i = totalCount-2; i > 1; --i)
+
+            var newCount = 0;
+            var totalCount = item.length
+            var newMax = 0;
+            if(!!item)
             {
+                var isUp = true
+                var _top = -1
+                var _bottom = -1
+                var time = item[totalCount-1][0]
+                var time1 = item[totalCount-2][0]
+                var heigh0 = item[totalCount-1][2] > item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
+                var heigh01 = item[totalCount-2][2] > item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
 
-                var time01 = item[i-1][0]
-                var open = item[i][2]
-                var close = item[i][5]
-                var open1 = item[i-1][2]
-                var close1 = item[i-1][5]
+                var lower = item[totalCount-1][2] < item[totalCount-1][5] ? item[totalCount-1][2] : item[totalCount-1][5]
+                var lower1 = item[totalCount-2][2] < item[totalCount-2][5] ? item[totalCount-2][2] : item[totalCount-2][5]
 
-                var heigh = open > close ? open : close
-                var heigh1 = open1 > close1 ? open1 : close1
-                lower = open < close ?  open : close
-                lower1 = open1 < close1 ? open1 : close1
+                isUp = heigh01 > heigh0
+                if(isUp === true)
+                    _top = heigh01
+                else
+                    _bottom = heigh0
 
-                if(isUp === true) // up
+
+                var lowerTime = 0;
+                var maxTop = -1
+                var time0
+                if(totalCount < 48)
+                    return
+                for(var i = totalCount-2; i > 1; --i)
                 {
-                    if(heigh1 > heigh)
+
+                    var time01 = item[i-1][0]
+                    var open = item[i][2]
+                    var close = item[i][5]
+                    var open1 = item[i-1][2]
+                    var close1 = item[i-1][5]
+
+                    var heigh = open > close ? open : close
+                    var heigh1 = open1 > close1 ? open1 : close1
+                    lower = open < close ?  open : close
+                    lower1 = open1 < close1 ? open1 : close1
+
+                    if(isUp === true) // up
                     {
-                        _top = heigh1
-                    }
-                    else
-                    {
-
-
-
-                        //console.info(symbol," Yali:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
-                        if(maxTop === -1)
+                        if(heigh1 > heigh)
                         {
-                            if(heigh01 > _top)
-                            {
-                                time0 = time
-                                maxTop = heigh01
-
-                            }
-                            else
-                            {
-                                time0 = item[i][0]
-                                maxTop = _top
-                            }
-
+                            _top = heigh1
                         }
-                        if(maxTop < _top)
-                            return
+                        else
+                        {
+
+
+
+                            //console.info(symbol," Yali:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
+                            if(maxTop === -1)
+                            {
+                                if(heigh01 > _top)
+                                {
+                                    time0 = time
+                                    maxTop = heigh01
+
+                                }
+                                else
+                                {
+                                    time0 = item[i][0]
+                                    maxTop = _top
+                                }
+
+                            }
+                            if(maxTop < _top)
+                                return
+                        }
+
+                    }
+                    else // down
+                    {
+                        if(heigh1 > heigh)
+                        {
+                            //console.info(symbol," ZhiCheng:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
+                            isUp = true
+                            lowerTime = time0
+                        }
+                        else
+                        {
+                            _bottom = lower1
+                        }
                     }
 
                 }
-                else // down
-                {
-                    if(heigh1 > heigh)
-                    {
-                        //console.info(symbol," ZhiCheng:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"bottom:",_bottom )
-                        isUp = true
-                        lowerTime = time0
-                    }
-                    else
-                    {
-                        _bottom = lower1
-                    }
-                }
-
+                gListModel.append({
+                                      _name: name,
+                                      _code: symbol.toLowerCase(),
+                                      _data: data,
+                                      _seri: newCount/totalCount
+                                  })
+                console.info(symbol,"find YaLi:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"top:",maxTop )
             }
-            gListModel.append({
-                                  _name: name,
-                                  _code: symbol.toLowerCase(),
-                                  _data: data,
-                                  _seri: newCount/totalCount
-                              })
-            console.info(symbol,"find YaLi:", new Date(time0).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"top:",maxTop )
         }
-    }
     }
     catch(e)
     {

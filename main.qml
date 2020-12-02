@@ -10,14 +10,22 @@ import REQUEST 1.0
 import QtCharts 2.2
 Window {
     visible: true
-    width: 1920
+    x: 1920/2
+    width: 1920/2
     height: 1080
-    title: qsTr("Hello World")
+    title: qsTr("")
+    property var publicObj: {}
+    property var _heigh: 0
+    property var _low: 0
+    property var dayCount : 365
+    property var dayEndCount : 365
+    property var endDayCount : 0
+
     property var currentMonth:new Date().getMonth()
     property var gnameArray: g_lstName
     property var gcodeArray: g_lstData//["SZ300015","SH601788","SH601800"]//
     //    property var gcodeArray:["SZ300357"]
-    property var cxcode: "SZ300015"
+    property var cxcode: "SH601100"
     property var yearCount: 5
     property var monthCount: yearCount*12
     property var smonthCount: 71
@@ -225,6 +233,7 @@ Window {
 
         Row
         {
+
             Rectangle
             {
                 id: txcode
@@ -232,9 +241,10 @@ Window {
                 height: 30
                 border.color: "black"
                 border.width: 1
+
                 TextEdit
                 {
-                    text: "sz300357"
+                    text: "SH601100"
                     anchors.fill: parent
                     anchors.margins: 3
                     font.pointSize: 13
@@ -247,19 +257,79 @@ Window {
             Rectangle
             {
                 id: txmonth
-                width: 100
+                width: 600
                 height: 30
                 border.color: "black"
                 border.width: 1
-                TextEdit
+                Row
                 {
-                    text: "0"
-                    anchors.fill: parent
-                    anchors.margins: 3
-                    font.pointSize: 13
-                    onTextChanged:
+                    anchors.fill: txmonth
+                    Text
                     {
-                        smonthCount = Number(text)
+                        text: "RSI顶:"
+                    }
+
+                    TextEdit
+                    {
+                        id: rsiH
+                        text: "0"
+                        width: 30
+                        height: 30
+                        font.pointSize: 13
+                        onTextChanged:
+                        {
+                            _heigh = text
+                        }
+                    }
+                    Text
+                    {
+                        text: "RSI底:"
+                    }
+
+                    TextEdit
+                    {
+                        id: rsiL
+                        text: "0"
+                        width: 30
+                        height: 30
+                        font.pointSize: 13
+                        onTextChanged:
+                        {
+                            _low = text
+                        }
+                    }
+                    Text
+                    {
+                        text: "从(天):"
+                    }
+
+                    TextEdit
+                    {
+                        id: tday
+                        text: "30"
+                        width: 30
+                        height: 30
+                        font.pointSize: 13
+                        onTextChanged:
+                        {
+                            dayCount = Number(text)
+                        }
+                    }
+                    Text
+                    {
+                        text: "至(天):"
+                    }
+                    TextEdit
+                    {
+                        id: tendday
+                        text: "0"
+                        width: 50
+                        height: 30
+                        font.pointSize: 13
+                        onTextChanged:
+                        {
+                            dayEndCount = Number(text)
+                        }
                     }
                 }
             }
@@ -267,12 +337,364 @@ Window {
             {
                 id: btnsFenx
                 height: 30
-                text:"买卖D计算"
+                text:"买卖RSI计算"
+                property var rsiPoint: 15
+                property var rsiCha: 25
                 onClicked: {
+                    console.log("start rsifx",cxcode)
+
+
+                    function calBs(mapRsi6,mapRsi67,arrKline,startIndex)
+                    {
+                        var arrValue = []
+                        var money = 100000
+                        var moneyshengyu = 0
+                        var count = 0
+                        var curmoney = money
+                        for(var i = startIndex; i < arrKline.length-dayEndCount; ++i )
+                        {
+                            var yestoday = arrKline[i-1].data
+                            var curPease = arrKline[i].data
+                            var  ytime = arrKline[i-1].time
+                            var time = arrKline[i].time
+                            var curValue = mapRsi6[time]
+                            var lastValue = mapRsi6[ytime]
+                            var cur67Value = mapRsi67[time]
+
+                            var heigh = _heigh
+                            var low = _low
+                            if(arrValue.length == 0 || arrValue.length%2 == 0)
+                            {
+                                if(curValue<low)
+                                {
+                                    var pos = {x:i,y:curPease,y2:curValue,time:time}
+                                    count = parseInt(curmoney /curPease)
+                                    moneyshengyu += curmoney - (curPease*count)
+
+                                    curmoney = curPease*count
+                                    arrValue.push(pos)
+                                }
+                            }
+                            else
+                            {
+                                if(curValue>heigh)
+                                {
+                                    var pos = {x:i,y:curPease,y2:curValue,time:time}
+                                    curmoney = count * curPease
+                                    arrValue.push(pos)
+                                }
+                            }
+
+                        }
+                        tresult.text = "代码:"+cxcode+" 初始:"+ money+ " "+ dayCount+"天后:"+ curmoney+moneyshengyu+" 率:"+((curmoney+moneyshengyu-money)/money ).toFixed(2)*100 + "% 6日RSI高于:"+heigh+"卖出 6日RSI低于:"+low+"买入"
+                        //                        console.info("股票代码:"+cxcode+"初始资金:", money," 3年后资金:", curmoney+moneyshengyu,"收益率:",((curmoney+moneyshengyu-money)/money ).toFixed(2)*100 + "%","6RSI高于:",heigh,"买入 6RSI低于:",low,"卖出")
+                        return arrValue
+                    }
+                    function dateMake(time)
+                    {
+                        var fomat = new Date(time).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss")
+                        return Date.fromLocaleString(Qt.locale(), fomat, "yyyy-MM-dd hh:mm:ss")
+                    }
+
+                    function kcha(data1,ydata1,data2,ydata2)
+                    {
+                        var chaState = ""
+                        if(data1 > data2)
+                        {
+                            if(ydata1 < ydata2)
+                            {
+                                chaState = "jincha"
+                            }
+                        }
+                        else if(data1 < data2)
+                        {
+                            if(ydata1 > ydata2)
+                            {
+                                chaState = "sicha"
+                            }
+                        }
+
+                        return chaState
+                    }
+
+                    function calMaxchaBs(mapRsi6,mapRsi67,arrKline,startIndex)
+                    {
+
+                        var maxResult = 0
+                        var curSeri = 0
+                        for(var seri = 0; seri < 1; seri+=0.01)
+                        {
+                            var arrValue = []
+                            var money = 100000
+                            var moneyshengyu = 0
+                            var count = 0
+                            var curmoney = money
+                            for(var i = startIndex; i < arrKline.length-dayEndCount; ++i )
+                            {
+                                var curPease = arrKline[i].data
+                                var curLow = arrKline[i].low
+                                var  ytime = arrKline[i-1].time
+                                var time = arrKline[i].time
+                                var curValue = mapRsi6[time]
+                                var lastValue = mapRsi6[ytime]
+                                var cur67Value = mapRsi67[time]
+                                var last67Vakye = mapRsi67[ytime]
+
+                                var heigh = _heigh
+                                var low = _low
+                                var chaState = kcha(curValue,lastValue,cur67Value,last67Vakye)
+
+                                if(arrValue.length == 0 || arrValue.length %2 == 0)
+                                {
+                                    var yma5 = Storage.getMa5(cxcode,time,seri)
+                                    //                                console.info("ma5:","yma5:",yma5,"curLow:",curLow)
+                                    if(curLow - yma5 < 0 )//f(curValue<10)//
+                                    {
+                                        count = parseInt(curmoney /curPease)
+                                        moneyshengyu += curmoney - (curPease*count)
+                                        curmoney = curPease*count
+                                        arrValue.push({time:time, value: curValue, pease:curPease})
+                                        //                                    console.info(new Date(time).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"B:",curPease,"余额:",curmoney)
+                                    }
+                                }
+                                else
+                                {
+                                    if(chaState == "sicha" )//if(curValue>90)//
+                                    {
+                                        curmoney = count * curPease
+                                        arrValue.push({time:time, value: curValue, pease:curPease})
+                                        //                                    console.info(new Date(time).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"S",curPease,"余额:",curmoney)
+                                    }
+                                }
+
+
+                            }
+                            var result = ((curmoney+moneyshengyu-money)/money ).toFixed(2)*100
+                            if(maxResult < result)
+                            {
+                                maxResult = result
+                                curSeri = seri
+                            }
+                        }
+                        console.info(curSeri, maxResult)
+                    }
+
+                    function calchaBs(mapRsi6,mapRsi67,arrKline,startIndex,seri)
+                    {
+                        var arrValue = []
+                        var money = 100000
+                        var moneyshengyu = 0
+                        var count = 0
+                        var curmoney = money
+                        for(var i = startIndex; i < arrKline.length-dayEndCount; ++i )
+                        {
+                            var curPease = arrKline[i].data
+                            var curLow = arrKline[i].low
+                            var  ytime = arrKline[i-1].time
+                            var time = arrKline[i].time
+                            var curValue = mapRsi6[time]
+                            var lastValue = mapRsi6[ytime]
+                            var cur67Value = mapRsi67[time]
+                            var last67Vakye = mapRsi67[ytime]
+
+                            var heigh = _heigh
+                            var low = _low
+                            var chaState = kcha(curValue,lastValue,cur67Value,last67Vakye)
+
+                            if(arrValue.length == 0 || arrValue.length %2 == 0)
+                            {
+                                var yma5 = Storage.getMa5(cxcode,time,seri)
+                                console.info("ma5:","yma5:",yma5,"curLow:",curLow)
+                                if(curLow - yma5 < 0 )//f(curValue<10)//
+                                {
+                                    count = parseInt(curmoney /curPease)
+                                    moneyshengyu += curmoney - (curPease*count)
+                                    curmoney = curPease*count
+                                    arrValue.push({time:time, value: curValue, pease:curPease})
+                                    console.info(new Date(time).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"B:",curPease,"余额:",curmoney)
+                                }
+                            }
+                            else
+                            {
+                                if(chaState == "sicha" )//if(curValue>90)//
+                                {
+                                    curmoney = count * curPease
+                                    arrValue.push({time:time, value: curValue, pease:curPease})
+                                    console.info(new Date(time).toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss"),"S",curPease,"余额:",curmoney)
+                                }
+                            }
+
+
+                        }
+                        tresult.text = "代码:"+cxcode+" 初始:"+ money+ " "+ dayCount+"天后:"+ curmoney+moneyshengyu+" 率:"+((curmoney+moneyshengyu-money)/money ).toFixed(2)*100 + "%"
+                        return arrValue
+                    }
+
+                    function drawChartLine()
+                    {
+                        var mapRsi6 = Contrllor.getBs(cxcode,6)
+                        var mapRsi24 = Contrllor.getBs(cxcode,24)
+                        var mapRsi40 = Contrllor.getBs(cxcode,40)
+                        var mapRsi67 = Contrllor.getBs(cxcode,67)
+
+                        var arrKline = Contrllor.getDayArray(cxcode)
+
+                        var startIndex = arrKline.length -dayCount
+                        var seri = 0.01
+                        var arrBs = calBs(mapRsi6,mapRsi67,arrKline,startIndex)
+                        var arrchaBs = calchaBs(mapRsi6,mapRsi67,arrKline,startIndex,seri)//calMaxchaBs(mapRsi6,mapRsi67,arrKline,startIndex) //
+
+                        var maxValue = 0
+                        newLine.clear()
+                        chart.newScatterBuy.clear()
+                        chart.newScatterScale.clear()
+                        chartRsi.newScatterBuy.clear()
+                        chartRsi.newScatterScale.clear()
+                        chartRsi.newLine1.clear()
+                        chartRsi.newLine2.clear()
+                        chartRsi.newLine4.clear()
+                        for(var i = startIndex; i < arrKline.length-dayEndCount; ++i)
+                        {
+                            if(arrKline[i] > maxValue)
+                                maxValue = arrKline[i].data
+                            var time = dateMake(arrKline[i].time)
+                            newLine.append(time,arrKline[i].data)
+                            chartRsi.newLine1.append(time,mapRsi6[arrKline[i].time])
+                            chartRsi.newLine2.append(time,mapRsi24[arrKline[i].time])
+                            chartRsi.newLine4.append(time,mapRsi67[arrKline[i].time])
+                        }
+
+                        x_axis.min = dateMake(arrKline[startIndex].time)
+                        x_axis.max = dateMake(arrKline[arrKline.length-dayEndCount-1].time)
+                        x_axisrsi.min = dateMake(arrKline[startIndex].time)
+                        x_axisrsi.max = dateMake(arrKline[arrKline.length-dayEndCount-1].time)
+
+                        chart.newScatterBuy.axisX = x_axis
+                        chart.newScatterScale.axisX = x_axis
+                        chartRsi.newLine1.axisX = x_axisrsi
+                        chartRsi.newLine2.axisX = x_axisrsi
+                        chartRsi.newLine3.axisX = x_axisrsi
+                        chartRsi.newLine4.axisX = x_axisrsi
+
+
+                        for(var i = 0; i < arrBs.length-1; i+=2)
+                        {
+                            chart.newScatterBuy.append(dateMake(arrBs[i].time),arrBs[i].y)
+                            chart.newScatterScale.append(dateMake(arrBs[i+1].time),arrBs[i+1].y)
+                            chartRsi.newScatterBuy.append(dateMake(arrBs[i].time),arrBs[i].y2)
+                            chartRsi.newScatterScale.append(dateMake(arrBs[i+1].time),arrBs[i+1].y2)
+                        }
+                        for(var i = 0; i < arrchaBs.length-1; i+=2)
+                        {
+                            chart.newScatterBuy.append(dateMake(arrchaBs[i].time),arrchaBs[i].pease)
+                            chart.newScatterScale.append(dateMake(arrchaBs[i+1].time),arrchaBs[i+1].pease)
+                            chartRsi.newScatterBuy.append(dateMake(arrchaBs[i].time),arrchaBs[i].value)
+                            chartRsi.newScatterScale.append(dateMake(arrchaBs[i+1].time),arrchaBs[i+1].value)
+                        }
+
+                        chartRsi.newLine1.color = "white"
+                        chartRsi.newLine2.color = "blue"
+                        chartRsi.newLine3.color = "pink"
+                        chartRsi.newLine4.color = "purple"
+                        newLine.color = "red"
+                        chart.newScatterBuy.color = "red"
+                        chart.newScatterScale.color = "green"
+                        chartRsi.newScatterBuy.color = "red"
+                        chartRsi.newScatterScale.color = "green"
+
+                        //                        chartRsi.axisX(chartRsi.newLine1).max = maxDayTime;
+                        chartRsi.axisY(chartRsi.newLine1).max = 100
+                        //                        chartRsi.axisX(chartRsi.newLine2).max = maxDayTime;
+                        chartRsi.axisY(chartRsi.newLine4).max = 100
+                        chart.axisY(newLine).max = 100;
+
+                    }
+                    drawChartLine()
+                    console.log("rsifx finish")
+                }
+            }
+            Button
+            {
+                id: btnsFenx1
+                height: 30
+                text:"RSI计算"
+                onClicked: {
+                    function calBs1(mapRsi6,mapRsi67,arrKline,startIndex)
+                    {
+                        var maxshouyi = 0
+                        for(var heigh = 0; heigh < 100; ++heigh)
+                        {
+                            for(var low = 0; low < 100; ++ low)
+                            {
+                                var shouyilv = 0
+                                var arrValue = []
+                                var money = 100000
+                                var moneyshengyu = 0
+                                var count = 0
+                                var curmoney = money
+                                for(var i = startIndex; i < arrKline.length-dayEndCount; ++i )
+                                {
+                                    var yestoday = arrKline[i-1].data
+                                    var curPease = arrKline[i].data
+                                    var  ytime = arrKline[i-1].time
+                                    var time = arrKline[i].time
+                                    var curValue = mapRsi6[time]
+                                    var lastValue = mapRsi6[ytime]
+                                    var cur67Value = mapRsi67[time]
+                                    if(arrValue.length == 0 || arrValue.length%2 == 0)
+                                    {
+                                        if(curValue<low)
+                                        {
+                                            var pos = {x:i,y:curPease,y2:curValue}
+                                            count = parseInt(curmoney /curPease)
+                                            moneyshengyu += curmoney - (curPease*count)
+                                            curmoney = curPease*count
+                                            arrValue.push(pos)
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(curValue>heigh)
+                                        {
+                                            var pos = {x:i,y:curPease,y2:curValue}
+                                            curmoney = count * curPease
+                                            arrValue.push(pos)
+                                        }
+                                    }
+
+                                    shouyilv = (curmoney+moneyshengyu-money)/money
+                                    if(maxshouyi < shouyilv)
+                                    {
+                                        maxshouyi = shouyilv
+                                        publicObj = {low: low, heigh: heigh, max:maxshouyi}
+                                    }
+
+                                }
+
+                            }
+                        }
+                        rsiL.text = publicObj.low
+                        rsiH.text = publicObj.heigh
+                        console.info("final result: ",JSON.stringify(publicObj))
+                    }
+
                     console.log("start sfx",cxcode)
-                    Contrllor.getSdata()
+                    var mapRsi6 = Contrllor.getRsiMap(cxcode,6)
+                    //                        var arr24 = Contrllor.getBs(cxcode,24)
+                    //                        var arr40 = Contrllor.getBs(cxcode,40)
+                    var mapRsi67 = Contrllor.getRsiMap(cxcode,67)
+
+                    var arrKline = Contrllor.getDayArray(cxcode)
+
+                    var startIndex = arrKline.length -dayCount
+                    var arrBs = calBs1(mapRsi6,mapRsi67,arrKline,startIndex)
                     console.log("sfx finish")
                 }
+            }
+            Text
+            {
+                id: tresult
+                color:"red"
             }
         }
 
@@ -412,6 +834,54 @@ Window {
             id:gListModel
         }
 
+        ChartView {
+            id:chart;
+            backgroundColor: "black"
+            property var newScatterBuy : chart.createSeries(ChartView.SeriesTypeScatter,"Buy");
+            property var newScatterScale : chart.createSeries(ChartView.SeriesTypeScatter,"Scale");
+            property var newLine3:newLine
+            width: 1500
+            height: 500
+            theme: ChartView.ChartThemeBrownSand
+            antialiasing: true
+            animationOptions:ChartView.GridAxisAnimations
+            DateTimeAxis {
+                id : x_axis
+
+                format: "hh::mm" //设置显示样式
+                //                labelsFont.pointSize: view.lablefont
+            }
+            LineSeries
+            {
+                id: newLine
+                color:"red"
+                axisX: x_axis
+            }
+        }
+        ChartView {
+            id:chartRsi;
+            backgroundColor: "black"
+            titleColor:"white"
+            DateTimeAxis {
+                id : x_axisrsi
+
+                format: "hh::mm" //设置显示样式
+                //                labelsFont.pointSize: view.lablefont
+            }
+            property var newLine1 : chartRsi.createSeries(ChartView.SeriesTypeLine,"RSI6");
+            property var newLine2 : chartRsi.createSeries(ChartView.SeriesTypeLine,"RSI24");
+            property var newLine3 : chartRsi.createSeries(ChartView.SeriesTypeLine,"RSI40");
+            property var newLine4 : chartRsi.createSeries(ChartView.SeriesTypeLine,"RSI67");
+            property var newScatterBuy : chartRsi.createSeries(ChartView.SeriesTypeScatter,"Buy");
+            property var newScatterScale : chartRsi.createSeries(ChartView.SeriesTypeScatter,"Scale");
+            width: 1500
+            height: 300
+            theme: ChartView.ChartThemeBrownSand
+            antialiasing: true
+            animationOptions:ChartView.GridAxisAnimations
+        }
+
+
         ListView
         {
             width: parent.width
@@ -427,11 +897,19 @@ Window {
                 theme: ChartView.ChartThemeBrownSand
                 antialiasing: true
 
-
+                property var mbvalue: 0
                 property var newLine : chartsview.createSeries(ChartView.SeriesTypeLine,gListModel.get(index)._code + gListModel.get(index)._name);
-                property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"next");
+                //                property var newLine1 : chartsview.createSeries(ChartView.SeriesTypeLine,"next");
                 //            property var newLine2 : chartsview.createSeries(ChartView.SeriesTypeLine,"2");
                 //            property var newLine3 : chartsview.createSeries(ChartView.SeriesTypeLine,"3");
+                Text
+                {
+                    id: tt
+                    anchors.centerIn: parent
+                    color: "red"
+
+                }
+
                 Component.onCompleted: {
                     var value = Storage.getKLine(gListModel.get(index)._code, "month" )
                     Storage.newTopSeir(value, gListModel.get(index)._code)
@@ -452,11 +930,18 @@ Window {
                     }
 
                     var dimax = Math.pow(max,(1/curMonth) )
-                    newLine1.append(item.length+1,Math.pow(dimax, item.length+2))
-                    newLine1.color = Qt.tint(newLine1.color, "red");
 
-                    chartsview.axisY(newLine).max = max;
-                    chartsview.axisY(newLine1).max = Math.pow(dimax, item.length+2);
+                    if((((Math.pow(dimax, item.length+1).toFixed(2)-max)/max)*100).toFixed(2) < 1)
+                    {
+                        visible = false
+                    }
+
+                    tt.text += "one:"+ Math.pow(dimax, item.length+1).toFixed(2)+"涨幅:"+(((Math.pow(dimax, item.length+1).toFixed(2)-max)/max)*100).toFixed(2) + "%\ntwo:"+Math.pow(dimax, item.length+2).toFixed(2)+"涨幅:"+(((Math.pow(dimax, item.length+2).toFixed(2)-max)/max)*100).toFixed(2) + "%\nthree:"+Math.pow(dimax, item.length+3).toFixed(2)+"涨幅:"+(((Math.pow(dimax, item.length+3).toFixed(2)-max)/max)*100).toFixed(2) + "%"
+
+
+                    chartsview.axisY(newLine).max = Math.pow(dimax, item.length+3);
+
+                    //                    chartsview.axisY(newLine1).max = Math.pow(dimax, item.length+1) + 10;
                 }
             }
         }

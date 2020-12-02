@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += qml quick network
+QT += qml quick network charts
 QT += sql
 CONFIG += c++11
 
