@@ -1,2 +1,0 @@
-QxNewTop.pro.
-QxNewTop.pro.user
